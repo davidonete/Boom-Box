@@ -1,6 +1,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
+#include "assets.h"
 
 #define SCALE 30 //pass from pixels to box2D positions
 
@@ -45,10 +46,9 @@ int main() {
 
   sf::Texture GroundTexture;
   sf::Texture BoxTexture;
-  //GroundTexture.loadFromFile("../../../../assets/images/ground.png");
-  //BoxTexture.loadFromFile("../../../../assets/images/box.png");
-  GroundTexture.loadFromFile("assets/images/ground.png");
-  BoxTexture.loadFromFile("assets/images/box.png");
+
+  GroundTexture.loadFromFile(ASSETS::ImagePath("ground.png"));
+  BoxTexture.loadFromFile(ASSETS::ImagePath("box.png"));
 
   createGround(world, 400.f, 500.f);
 
