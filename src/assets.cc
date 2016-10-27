@@ -6,7 +6,7 @@
 *** ////////////////////////////////////////////
 **/
 
-#include "assets.h"
+#include "Assets.h"
 
 //Windows Paths
 #define WIN_IMAGE_PATH "../../../../assets/images/"
