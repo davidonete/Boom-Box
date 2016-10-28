@@ -7,6 +7,13 @@
 
 #pragma once
 
+enum InputData
+{
+  InputData_LeftPressed,
+  InputData_RightPressed,
+  InputData_SpacePressed
+};
+
 class GameManager
 {
 public:
@@ -21,13 +28,15 @@ public:
   void Input();
   void Update();
   void Render();
+    
+  bool CheckInputPressed(InputData InputType);
 
   inline b2World* GetWorld() { return world; }
   inline sf::RenderWindow* GetWindow() { return window; }
-  inline void GetInput() { return; }
 
 private:
   GameManager();
+  void UpdateInput();
 
   sf::RenderWindow* window;
   b2World* world;
@@ -35,6 +44,7 @@ private:
   static GameManager* Instance;
 
   std::vector<Object> SpawnedObjects;
+  std::vector<InputData> LastInputPressed;
 };
 
 #endif

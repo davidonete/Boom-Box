@@ -4,6 +4,8 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 
+#include "GameManager.h"
+
 #pragma once
 
 struct Vec2
@@ -60,6 +62,8 @@ private:
   sf::Sprite LastUpdatedSprite;
 
   b2Vec2 SpriteOrigin;
+    
+  GameManager* GM;
 };
 
 #endif

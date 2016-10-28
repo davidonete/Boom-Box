@@ -1,7 +1,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
-#include "Assets.h"
+#include "assets.h"
 #include "GameManager.h"
 
 #define SCALE 30 //pass from pixels to box2D positions

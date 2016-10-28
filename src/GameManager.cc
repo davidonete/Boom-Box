@@ -32,12 +32,13 @@ void GameManager::Init()
 
 void GameManager::SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char* texturePath, Vec2 spriteOrigin)
 {
-  Object *newObject = new Object(position, scale, type, density, friction, texturePath, spriteOrigin);
+  Object* newObject = new Object(position, scale, type, density, friction, texturePath, spriteOrigin);
   SpawnedObjects.push_back(*newObject);
 }
 
 void GameManager::Input()
 {
+  UpdateInput();
   for (int i = 0; i < SpawnedObjects.size(); i++)
     SpawnedObjects[i].Input();
 }
@@ -60,4 +61,27 @@ void GameManager::Render()
 
   //Update the window
   window->display();
+}
+
+void GameManager::UpdateInput()
+{
+    LastInputPressed.clear();
+    
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+        LastInputPressed.push_back(InputData_RightPressed);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+        LastInputPressed.push_back(InputData_RightPressed);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+        LastInputPressed.push_back(InputData_RightPressed);
+}
+
+
+bool GameManager::CheckInputPressed(InputData InputType)
+{
+    for(int i = 0; i < LastInputPressed.size(); i++)
+    {
+        if(LastInputPressed[i] == InputType)
+            return true;
+    }
+    return false;
 }
