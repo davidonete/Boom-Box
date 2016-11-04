@@ -1,6 +1,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
+
 #include "assets.h"
 #include "GameManager.h"
 
@@ -11,8 +12,17 @@ void Init()
   GameManager::GetInstance()->Init();
 
   GameManager::GetInstance()->SpawnObject(Vec2(200.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
-  //GameManager::GetInstance()->SpawnObject(Vec2(200.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
+
+  GameManager::GetInstance()->SpawnObject(Vec2(240.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
+    
+  GameManager::GetInstance()->SpawnObject(Vec2(280.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
+    
+  GameManager::GetInstance()->SpawnObject(Vec2(320.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
+
   GameManager::GetInstance()->SpawnObject(Vec2(400.0f, 500.0f), Vec2(800.0f, 16.0f), StaticBody, 0.0f, 5.0f, "ground.png", Vec2(400.0f, 8.0f));
+    
+  GameManager::GetInstance()->SpawnObject(Vec2(100.0f, 200.0f), Vec2(150.0f, 50.0f), StaticBody, 0.0f, 5.0f, "platform.png", Vec2(75.0f, 25.0f));
+
 }
 
 void Remove()

@@ -23,7 +23,7 @@ public:
 
   void Init();
 
-  void SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char* texturePath, Vec2 spriteOrigin);
+  void SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
 
   void Input();
   void Update();
@@ -43,7 +43,7 @@ private:
 
   static GameManager* Instance;
 
-  std::vector<Object> SpawnedObjects;
+  std::vector<Object*> SpawnedObjects;
   std::vector<InputData> LastInputPressed;
 };
 

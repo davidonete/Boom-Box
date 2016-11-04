@@ -1,9 +1,10 @@
 #include "Object.h"
+#include "GameManager.h"
 #include "Assets.h"
 
 #define SCALE 30.0f //pass from pixels to box2D positions
 
-Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char * texturePath, Vec2 spriteOrigin)
+Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin)
 {
   b2BodyDef BodyDef;
   BodyDef.position = b2Vec2(position.x / SCALE, position.y / SCALE);

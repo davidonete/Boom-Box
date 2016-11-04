@@ -4,9 +4,9 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 
-#include "GameManager.h"
-
 #pragma once
+
+class GameManager;
 
 struct Vec2
 {
@@ -40,7 +40,7 @@ class Object
 {
 public:
   // Only for square shapes
-  Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char* texturePath, Vec2 spriteOrigin);
+  Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
   ~Object();
 
   virtual void Init();
