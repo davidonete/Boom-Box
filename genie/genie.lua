@@ -1,11 +1,3 @@
---
--- ////////////////////////////////////////////
--- /////Autor: Juan Daniel Laserna Condado/////
--- /////Email: S6106112@live.tees.ac.uk   /////
--- /////            2016-2017             /////
--- ////////////////////////////////////////////
---
-
 -- Define the project. Put the release configuration first so it will be the
 -- default when folks build using the makefile. That way they don't have to
 -- worry about the /scripts argument and all that.
@@ -89,50 +81,48 @@ solution "multiplayer"
 --[[--------------------------------------------
 ------------- MULTIPLAYER PROJECT --------------
 --]]--------------------------------------------
-project "multiplayer"
-  targetname "multiplayer"
+project "multiplayer_client"
+  targetname "multiplayer_client"
   language "C++"
   location "../project/build"
   libdirs "../lib"
   kind "ConsoleApp"
   
-  --[[flags {
-    "No64BitChecks",
-    "ExtraWarnings",
-  }]]
-
-  --defines {
-    --"_GLFW_WIN32",
-    --"_GLFW_WGL",
-    --"_GLFW_USE_OPENGL",
-  --}
-  
   includedirs {
     "../assets",
-    "../include",
+    "../include/client",
     "../deps/Box2D",
     "../deps/SFML/include",
-    --"../examples/include",
-    --"../deps/glew/include",
-    --"../deps/glfw/include",
-    --"../deps/glm",
-    --"../deps/imgui",
-    --"../deps/openal/include",
-    --"../deps/soil",
-    --"../deps/stb",
-    --"../deps/tinyobjloader",
   }
   
   files {
-    "../src/**.*",
-    "../include/**.*",
+    "../src/client/**.*",
+    "../include/client/**.*",
     "../deps/SFML/include/**.*",
     "../deps/Box2D/Box2D/Box2D.h",
-    --"../deps/glfw/src/*.c",
-    --"../deps/imgui/*.cpp",
-    --"../deps/soil/*.c",
-    --"../deps/stb/*.c",
-    --"../deps/tinyobjloader/*.cc",
-    --"../shaders/**.*",
-    --"../examples/**.*",
+  }
+  
+project "multiplayer_server"
+  targetname "multiplayer_server"
+  language "C#"
+  location "../project/build"
+  kind "ConsoleApp"
+  
+  links {
+	"Microsoft.CSharp", 
+	"System",
+	"System.Data",
+	"System.Data.DataSetExtensions",
+	"System.Net.Http",
+	"System.XML",
+	"System.Xml.Linq"
+  }
+  
+  includedirs {
+    "../include/server",
+  }
+  
+  files {
+    "../src/server/**.*",
+    "../include/server/**.*",
   }
