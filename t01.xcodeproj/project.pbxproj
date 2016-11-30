@@ -7,7 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0B1D0A441D9EAAAA00319891 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0B1D0A431D9EAAAA00319891 /* main.cpp */; };
+		983FEACA1DC34B4E00BF54DE /* assets.cc in Sources */ = {isa = PBXBuildFile; fileRef = 983FEAC61DC34B4E00BF54DE /* assets.cc */; };
+		983FEACB1DC34B4E00BF54DE /* GameManager.cc in Sources */ = {isa = PBXBuildFile; fileRef = 983FEAC71DC34B4E00BF54DE /* GameManager.cc */; };
+		983FEACC1DC34B4E00BF54DE /* Main.cc in Sources */ = {isa = PBXBuildFile; fileRef = 983FEAC81DC34B4E00BF54DE /* Main.cc */; };
+		983FEACD1DC34B4E00BF54DE /* Object.cc in Sources */ = {isa = PBXBuildFile; fileRef = 983FEAC91DC34B4E00BF54DE /* Object.cc */; };
 		98F74D0B1DBA218D0069EA96 /* libBox2D.2.3.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98F74D0A1DBA218D0069EA96 /* libBox2D.2.3.0.dylib */; };
 		98F74D0D1DBA21AD0069EA96 /* libsfml-audio.2.4.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98F74D0C1DBA21AD0069EA96 /* libsfml-audio.2.4.0.dylib */; };
 		98F74D0F1DBA21CD0069EA96 /* libjpeg.8.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 98F74D0E1DBA21CD0069EA96 /* libjpeg.8.dylib */; };
@@ -32,7 +35,13 @@
 
 /* Begin PBXFileReference section */
 		0B1D0A401D9EAAAA00319891 /* t01 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = t01; sourceTree = BUILT_PRODUCTS_DIR; };
-		0B1D0A431D9EAAAA00319891 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		983FEAC61DC34B4E00BF54DE /* assets.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = assets.cc; sourceTree = "<group>"; };
+		983FEAC71DC34B4E00BF54DE /* GameManager.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = GameManager.cc; sourceTree = "<group>"; };
+		983FEAC81DC34B4E00BF54DE /* Main.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Main.cc; sourceTree = "<group>"; };
+		983FEAC91DC34B4E00BF54DE /* Object.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Object.cc; sourceTree = "<group>"; };
+		983FEAD11DC34B8300BF54DE /* assets.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = assets.h; path = include/assets.h; sourceTree = "<group>"; };
+		983FEAD21DC34B8300BF54DE /* GameManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = GameManager.h; path = include/GameManager.h; sourceTree = "<group>"; };
+		983FEAD31DC34B8300BF54DE /* Object.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Object.h; path = include/Object.h; sourceTree = "<group>"; };
 		98F74D0A1DBA218D0069EA96 /* libBox2D.2.3.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libBox2D.2.3.0.dylib; path = ../../../../Users/s6109146/Cellar/Box2D/libBox2D.2.3.0.dylib; sourceTree = "<group>"; };
 		98F74D0C1DBA21AD0069EA96 /* libsfml-audio.2.4.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libsfml-audio.2.4.0.dylib"; path = "../../../../Users/s6109146/Cellar/sfml/2.4.0/lib/libsfml-audio.2.4.0.dylib"; sourceTree = "<group>"; };
 		98F74D0E1DBA21CD0069EA96 /* libjpeg.8.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjpeg.8.dylib; path = ../../../../Users/s6109146/Cellar/jpeg/8d/lib/libjpeg.8.dylib; sourceTree = "<group>"; };
@@ -67,6 +76,7 @@
 		0B1D0A371D9EAAAA00319891 = {
 			isa = PBXGroup;
 			children = (
+				983FEAD01DC34B6600BF54DE /* include */,
 				B1E0D58F1DB0E9DC00366B93 /* Libraries */,
 				B1E0D58E1DB0E9CA00366B93 /* Assets */,
 				0B1D0A421D9EAAAA00319891 /* src */,
@@ -85,9 +95,22 @@
 		0B1D0A421D9EAAAA00319891 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				0B1D0A431D9EAAAA00319891 /* main.cpp */,
+				983FEAC61DC34B4E00BF54DE /* assets.cc */,
+				983FEAC71DC34B4E00BF54DE /* GameManager.cc */,
+				983FEAC81DC34B4E00BF54DE /* Main.cc */,
+				983FEAC91DC34B4E00BF54DE /* Object.cc */,
 			);
 			path = src;
+			sourceTree = "<group>";
+		};
+		983FEAD01DC34B6600BF54DE /* include */ = {
+			isa = PBXGroup;
+			children = (
+				983FEAD11DC34B8300BF54DE /* assets.h */,
+				983FEAD21DC34B8300BF54DE /* GameManager.h */,
+				983FEAD31DC34B8300BF54DE /* Object.h */,
+			);
+			name = include;
 			sourceTree = "<group>";
 		};
 		B1E0D58E1DB0E9CA00366B93 /* Assets */ = {
@@ -141,7 +164,7 @@
 		0B1D0A381D9EAAAA00319891 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0730;
+				LastUpgradeCheck = 0810;
 				ORGANIZATIONNAME = "Cordry, Julien";
 				TargetAttributes = {
 					0B1D0A3F1D9EAAAA00319891 = {
@@ -171,7 +194,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0B1D0A441D9EAAAA00319891 /* main.cpp in Sources */,
+				983FEACD1DC34B4E00BF54DE /* Object.cc in Sources */,
+				983FEACC1DC34B4E00BF54DE /* Main.cc in Sources */,
+				983FEACA1DC34B4E00BF54DE /* assets.cc in Sources */,
+				983FEACB1DC34B4E00BF54DE /* GameManager.cc in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -192,8 +218,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -237,8 +265,10 @@
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_IDENTITY = "-";
@@ -263,7 +293,10 @@
 		0B1D0A481D9EAAAA00319891 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				"HEADER_SEARCH_PATHS[arch=*]" = "~/include";
+				"HEADER_SEARCH_PATHS[arch=*]" = (
+					"~/include",
+					./include,
+				);
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",
@@ -276,6 +309,7 @@
 		0B1D0A491D9EAAAA00319891 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				"HEADER_SEARCH_PATHS[arch=*]" = "~/include/**";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)",

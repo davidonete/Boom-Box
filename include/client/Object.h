@@ -6,6 +6,8 @@
 
 #pragma once
 
+class GameManager;
+
 struct Vec2
 {
   float32 x;
@@ -38,7 +40,7 @@ class Object
 {
 public:
   // Only for square shapes
-  Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char* texturePath, Vec2 spriteOrigin);
+  Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
   ~Object();
 
   virtual void Init();
@@ -60,6 +62,8 @@ private:
   sf::Sprite LastUpdatedSprite;
 
   b2Vec2 SpriteOrigin;
+    
+  GameManager* GM;
 };
 
 #endif

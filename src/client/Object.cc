@@ -1,10 +1,10 @@
 #include "Object.h"
-#include "Assets.h"
 #include "GameManager.h"
+#include "Assets.h"
 
 #define SCALE 30.0f //pass from pixels to box2D positions
 
-Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, char * texturePath, Vec2 spriteOrigin)
+Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin)
 {
   b2BodyDef BodyDef;
   BodyDef.position = b2Vec2(position.x / SCALE, position.y / SCALE);
@@ -29,6 +29,7 @@ Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, floa
   Texture.loadFromFile(ASSETS::ImagePath(texturePath));
 
   SpriteOrigin = b2Vec2(spriteOrigin.x, spriteOrigin.y);
+  GM = GameManager::GetInstance();
 }
 
 Object::~Object()
@@ -72,7 +73,7 @@ void Object::Update()
   */
 
   //Force
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+  if (GM->CheckInputPressed(InputData_RightPressed))
   {
     b2Vec2 vel = Body->GetLinearVelocity();
     float velChange = 1.0f - vel.x;
@@ -80,7 +81,7 @@ void Object::Update()
     Body->ApplyForce(b2Vec2(force, 0), Body->GetWorldCenter(), true);
   }
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+  if (GM->CheckInputPressed(InputData_LeftPressed))
   {
     b2Vec2 vel = Body->GetLinearVelocity();
     float velChange = -1.0f - vel.x;
@@ -88,7 +89,7 @@ void Object::Update()
     Body->ApplyForce(b2Vec2(force, 0), Body->GetWorldCenter(), true);
   }
 
-  if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
+  if (GM->CheckInputPressed(InputData_SpacePressed))
   {
     b2Vec2 vel = Body->GetLinearVelocity();
     float inputValue = 5.0f;

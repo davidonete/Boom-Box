@@ -25,12 +25,12 @@
 #define SOUND_PATH IOS_SOUND_PATH
 #endif
 
-std::string ASSETS::ImagePath(char *image) {
+std::string ASSETS::ImagePath(const char* image) {
   std::string path = IMAGE_PATH;
   return path.append(image);
 }
 
-std::string ASSETS::SoundPath(char *sound) {
+std::string ASSETS::SoundPath(const char* sound) {
   std::string path = SOUND_PATH;
   return path.append(sound);
 }
