@@ -63,63 +63,43 @@ int main()
 }
 */
 
+//http://www.iforce2d.net/b2dtut/constant-speed
+
 //-------------------------------------------------------------------------------
+//#define TCP_CONNECTION
 
 const unsigned short PORT = 8080;
 const std::string IPADDRESS("127.0.0.1");
 
 std::string msgSend;
 
-sf::TcpSocket socket;
+sf::TcpSocket tcpSocket;
+sf::UdpSocket udpSocket;
+
 sf::Mutex globalMutex;
 bool quit = false;
 bool connected = false;
 
-void DoStuff(void)
-{
-    if (connected)
-    {
-        static std::string oldMsg;
-        //while (!quit)
-        //{
-            /*
-            std::cout << "Do Stuff\n";
-            sf::Packet packetSend;
-            globalMutex.lock();
-            packetSend << msgSend;
-            globalMutex.unlock();
-
-            socket.send(packetSend);
-            */
-
-            std::string msg;
-            sf::Packet packetReceive;
-
-            socket.receive(packetReceive);
-            if (packetReceive >> msg)
-            {
-                if (oldMsg != msg)
-                    if (!msg.empty())
-                    {
-                        std::cout << msg << std::endl;
-                        oldMsg = msg;
-                    }
-            }
-        //}
-    }
-}
-
-void Client(void)
+void ClientConnection()
 {
     if (!connected)
     {
-        if (socket.connect(IPADDRESS, PORT) == sf::Socket::Done)
+        #ifdef TCP_CONNECTION
+        tcpSocket.disconnect();
+        if (tcpSocket.connect(IPADDRESS, PORT) == sf::Socket::Done)
         {
-            std::cout << "Connected\n";
+            std::cout << "\nConnected";
             connected = true;
         }
         else
             connected = false;
+
+        #else
+        //UDP does not need a previous connection for sending
+        connected = true;
+        //but it needs for receiving
+        udpSocket.bind(PORT, IPADDRESS);
+        #endif
     }
 }
 
@@ -132,30 +112,56 @@ void GetInput(void)
         std::cin >> s;
 
         if (s == "exit")
+        {
             quit = true;
-
-        sf::Packet packetSend;
-        packetSend << msgSend;
-
-        sf::UdpSocket Socket;
+            return;
+        }
 
         // Create bytes to send
         int BufferLenght = s.length() + 1;
         char *Buffer = new char[BufferLenght];
         std::strcpy(Buffer, s.c_str());
 
-        if (socket.send(Buffer, sizeof(char) * BufferLenght) != sf::Socket::Done)
+        #ifdef TCP_CONNECTION
+        if (tcpSocket.send(Buffer, sizeof(char) * BufferLenght) != sf::Socket::Done)
+        {
             std::cout << "error sending...";
+            connected = false;
+        }
+
+        Buffer = new char[128];
+        std::size_t Received;
+
+        //it is blocking until it receives data (can set the socket to non-blocking)
+        if (tcpSocket.receive(Buffer, sizeof(char) * 128, Received) != sf::Socket::Done)
+        {
+            std::cout << "error receiving...";
+            connected = false;
+        }
+        else
+            std::cout << "Received " << Received << " bytes from server: " << Buffer;
 
         delete Buffer;
-        //socket.send(packetSend);
 
-        /*
-        globalMutex.lock();
-        msgSend = s;
-        globalMutex.unlock();
-        */
+        #else
+        if (udpSocket.send(Buffer, sizeof(char) * BufferLenght, IPADDRESS, PORT) != sf::Socket::Done)
+            std::cout << "error sending...";
+
+        Buffer = new char[128];
+        std::size_t Received;
+
+        sf::IpAddress Sender;
+        unsigned short Port;
+
+        if (udpSocket.receive(Buffer, sizeof(Buffer), Received, Sender, Port) != sf::Socket::Done)
+            std::cout << "error receiving...";
+        else
+            std::cout << "Received " << Received << " bytes from server: " << Buffer;
+
+        #endif
     }
+    else
+        ClientConnection();
 }
 
 int main() 
@@ -165,24 +171,21 @@ int main()
     //thread = new sf::Thread(&DoStuff);
     //thread->launch();
 
-    while (!quit)
-    {
-        Client();
-        GetInput();
-        DoStuff();
-    }
+    ClientConnection();
 
-    /*
-    if (thread)
-    {
-       
-        thread->wait();
-        delete thread;
-    }
-    */
-    socket.disconnect();
+    while (!quit)
+        GetInput();
+
+    #ifdef TCP_CONNECTION
+    tcpSocket.disconnect();
+
+    #else
+    //udpSocket.close();
+    udpSocket.unbind();
+
+    #endif
 
     return 0;
 }
 
-//http://www.iforce2d.net/b2dtut/constant-speed
+//http://www.sfml-dev.org/tutorials/1.6/network-sockets.php

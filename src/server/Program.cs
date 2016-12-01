@@ -22,11 +22,16 @@ public class AsynchronousSocketListener
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
 
+    public static bool tcpServer = false;
+
+    private static Socket udpSock;
+    private static byte[] buffer;
+
     public AsynchronousSocketListener()
     {
     }
 
-    public static void StartListening()
+    public static void StartListeningTCP()
     {
         // Data buffer for incoming data.
         byte[] bytes = new Byte[1024];
@@ -34,7 +39,7 @@ public class AsynchronousSocketListener
         // Establish the local endpoint for the socket.
         // The DNS name of the computer
         // running the listener is "host.contoso.com".
-        IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
+        //IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
         IPAddress ipAddress = System.Net.IPAddress.Parse("127.0.0.1");
         int port = 8080;
 
@@ -121,14 +126,14 @@ public class AsynchronousSocketListener
             {
                 // All the data has been read from the 
                 // client. Display it on the console.
-                Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
+                Console.WriteLine("Read {0} bytes from socket. \nData : {1}",
                     content.Length, content);
                 // Echo the data back to the client.
                 Send(handler, content);
             }
             else
             {
-                // Not all data received. Get more.
+                // Not all data received. Get more. ??????
                 handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
                 new AsyncCallback(ReadCallback), state);
             }
@@ -170,10 +175,82 @@ public class AsynchronousSocketListener
         }
     }
 
+    public static void StartListeningUDP()
+    {
+        IPAddress ipAddress = System.Net.IPAddress.Parse("127.0.0.1");
+        int port = 8080;
+
+        //Setup the socket and message buffer
+        udpSock = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+        udpSock.Bind(new IPEndPoint(ipAddress, port));
+        buffer = new byte[1024];
+
+        //Start listening for a new message.
+        EndPoint newClientEP = new IPEndPoint(IPAddress.Any, 0);
+        while (true)
+        {                
+            // Set the event to nonsignaled state.
+            allDone.Reset();
+
+            // Start an asynchronous socket to listen for connections.
+            Console.WriteLine("Waiting for a connection...");
+
+            udpSock.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, DoReceiveFrom, udpSock);
+            // Wait until a connection is made before continuing.
+            allDone.WaitOne();
+        }
+    }
+
+    private static void DoReceiveFrom(IAsyncResult iar)
+    {
+        try
+        {
+            allDone.Set();
+            //Get the received message.
+            Socket handler = (Socket)iar.AsyncState;
+
+            EndPoint clientEP = new IPEndPoint(IPAddress.Any, 0);
+            int msgLen = handler.EndReceiveFrom(iar, ref clientEP);
+            byte[] localMsg = new byte[msgLen];
+            Array.Copy(buffer, localMsg, msgLen);
+
+            string content = Encoding.ASCII.GetString(localMsg, 0, msgLen);
+
+            if (content.IndexOf("\0") > -1)
+            {
+                //Handle the received message
+                Console.WriteLine("Recieved {0} bytes from {1}:{2} \nData: {3}",
+                                  msgLen,
+                                  ((IPEndPoint)clientEP).Address,
+                                  ((IPEndPoint)clientEP).Port,
+                                  content);
+
+                byte[] byteData = Encoding.ASCII.GetBytes(content);
+
+                // Begin sending the data to the remote device. (not working)
+                //Send(handler, content);
+            }
+            else
+            {
+                // Not all data received. Get more. ???????
+                EndPoint newClientEP = new IPEndPoint(IPAddress.Any, 0);
+                udpSock.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref newClientEP, DoReceiveFrom, udpSock);
+            }
+
+        }
+        catch (ObjectDisposedException)
+        {
+            //expected termination exception on a closed socket.
+        }
+    }
 
     public static int Main(String[] args)
     {
-        StartListening();
+        if (tcpServer)
+            StartListeningTCP();
+        else
+            StartListeningUDP();
+
         return 0;
     }
 }
