@@ -66,7 +66,7 @@ int main()
 //http://www.iforce2d.net/b2dtut/constant-speed
 
 //-------------------------------------------------------------------------------
-//#define TCP_CONNECTION
+#define TCP_CONNECTION
 
 const unsigned short PORT = 8080;
 const std::string IPADDRESS("127.0.0.1");

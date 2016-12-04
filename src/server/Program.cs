@@ -22,7 +22,7 @@ public class AsynchronousSocketListener
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
 
-    public static bool tcpServer = false;
+    public static bool tcpServer = true;
 
     private static Socket udpSock;
     private static byte[] buffer;
@@ -165,8 +165,14 @@ public class AsynchronousSocketListener
             int bytesSent = handler.EndSend(ar);
             Console.WriteLine("Sent {0} bytes to client.", bytesSent);
 
-            handler.Shutdown(SocketShutdown.Both);
-            handler.Close();
+            // Create the state object.
+            StateObject state = new StateObject();
+            state.workSocket = handler;
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                new AsyncCallback(ReadCallback), state);
+
+            //handler.Shutdown(SocketShutdown.Both);
+            //handler.Close();
 
         }
         catch (Exception e)
