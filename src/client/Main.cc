@@ -68,6 +68,12 @@ int main()
 //-------------------------------------------------------------------------------
 #define TCP_CONNECTION
 
+struct Packet
+{
+	unsigned int id;
+	float x, y;
+};
+
 const unsigned short PORT = 8080;
 const std::string IPADDRESS("127.0.0.1");
 
@@ -97,8 +103,9 @@ void ClientConnection()
         #else
         //UDP does not need a previous connection for sending
         connected = true;
-        //but it needs for receiving
-        udpSocket.bind(PORT, IPADDRESS);
+		udpSocket.setBlocking(false);
+		//Bind to a local port to receive from server
+        udpSocket.bind(sf::Socket::AnyPort);
         #endif
     }
 }
@@ -123,8 +130,24 @@ void GetInput(void)
         std::strcpy(Buffer, s.c_str());
 
         #ifdef TCP_CONNECTION
-        if (tcpSocket.send(Buffer, sizeof(char) * BufferLenght) != sf::Socket::Done)
-        {
+
+		Packet packet;
+		packet.id = 1;
+		packet.x = 128.5f;
+		packet.y = 0.5f;
+
+		//Sending Side
+		char buffer[sizeof(packet)];
+		memcpy(buffer, &packet, sizeof(packet));
+
+		//Receiving Side
+		Packet tmp;
+		memcpy(&tmp, buffer, sizeof(tmp));
+		std::cout << tmp.x;
+
+        //if (tcpSocket.send(Buffer, sizeof(char) * BufferLenght) != sf::Socket::Done)
+        if(tcpSocket.send(buffer, sizeof(packet)) != sf::Socket::Done)
+		{
             std::cout << "error sending...";
             connected = false;
         }
@@ -133,7 +156,7 @@ void GetInput(void)
         std::size_t Received;
 
         //it is blocking until it receives data (can set the socket to non-blocking)
-        if (tcpSocket.receive(Buffer, sizeof(char) * 128, Received) != sf::Socket::Done)
+        if (tcpSocket.receive(Buffer, sizeof(char) * BufferLenght, Received) != sf::Socket::Done)
         {
             std::cout << "error receiving...";
             connected = false;
@@ -153,10 +176,10 @@ void GetInput(void)
         sf::IpAddress Sender;
         unsigned short Port;
 
-        if (udpSocket.receive(Buffer, sizeof(Buffer), Received, Sender, Port) != sf::Socket::Done)
-            std::cout << "error receiving...";
+        if (udpSocket.receive(Buffer, sizeof(char) * BufferLenght, Received, Sender, Port) != sf::Socket::Done)
+            std::cout << "error receiving... ";
         else
-            std::cout << "Received " << Received << " bytes from server: " << Buffer;
+            std::cout << "Received " << Received << " bytes from server: " << Buffer << " " << Sender << ":" << Port;
 
         #endif
     }
