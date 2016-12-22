@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Mixed Platforms">
+      <Configuration>Release</Configuration>
+      <Platform>Mixed Platforms</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x86">
+      <Configuration>Release</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Mixed Platforms">
+      <Configuration>Debug</Configuration>
+      <Platform>Mixed Platforms</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x86">
+      <Configuration>Debug</Configuration>
+      <Platform>x86</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{BB9D3AC7-A781-FB1C-10E2-F56FFCE4E59E}</ProjectGuid>
+    <RootNamespace>multiplayer_client</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Mixed Platforms'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Mixed Platforms'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Mixed Platforms'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Mixed Platforms'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Mixed Platforms'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Release\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Release\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Release\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\x64\Release\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Mixed Platforms'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Debug\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Debug\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\Debug\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <OutDir>bin\windows\</OutDir>
+    <IntDir>obj\x64\Debug\multiplayer_client\</IntDir>
+    <TargetName>multiplayer_client</TargetName>
+    <TargetExt>.exe</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Mixed Platforms'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-graphics.lib;sfml-network.lib;sfml-system.lib;sfml-window.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-graphics.lib;sfml-network.lib;sfml-system.lib;sfml-window.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-graphics.lib;sfml-network.lib;sfml-system.lib;sfml-window.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Full</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat></DebugInformationFormat>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>NDEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-graphics.lib;sfml-network.lib;sfml-system.lib;sfml-window.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Mixed Platforms'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(OutDir)multiplayer_client.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(OutDir)multiplayer_client.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(OutDir)multiplayer_client.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalOptions>  %(AdditionalOptions)</AdditionalOptions>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <MinimalRebuild>false</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeader></PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ProgramDataBaseFileName>$(OutDir)multiplayer_client.pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>_DEBUG;LUA_COMPAT_MODULE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\assets;..\..\include\client;..\..\deps\Box2D;..\..\deps\SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>openal32.lib;Box2D.lib;sfml-audio-d.lib;sfml-graphics-d.lib;sfml-network-d.lib;sfml-system-d.lib;sfml-window-d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)multiplayer_client.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\..\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <EntryPointSymbol>mainCRTStartup</EntryPointSymbol>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\client\Assets.h" />
+    <ClInclude Include="..\..\include\client\GameManager.h" />
+    <ClInclude Include="..\..\include\client\Object.h" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Config.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Main.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\OpenGL.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\AlResource.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\Export.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\InputSoundFile.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\Listener.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\Music.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\OutputSoundFile.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\Sound.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundBuffer.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundBufferRecorder.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundFileFactory.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundFileReader.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundFileWriter.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundRecorder.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundSource.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Audio\SoundStream.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\BlendMode.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\CircleShape.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Color.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\ConvexShape.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Drawable.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Export.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Font.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Glsl.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Glyph.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Image.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\PrimitiveType.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Rect.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\RectangleShape.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\RenderStates.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\RenderTarget.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\RenderTexture.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\RenderWindow.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Shader.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Shape.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Sprite.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Text.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Texture.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Transform.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Transformable.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\Vertex.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\VertexArray.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Graphics\View.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\Export.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\Ftp.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\Http.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\IpAddress.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\Packet.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\Socket.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\SocketHandle.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\SocketSelector.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\TcpListener.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\TcpSocket.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Network\UdpSocket.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Clock.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Err.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Export.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\FileInputStream.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\InputStream.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Lock.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\MemoryInputStream.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Mutex.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\NativeActivity.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\NonCopyable.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Sleep.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\String.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Thread.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\ThreadLocal.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\ThreadLocalPtr.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Time.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Utf.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Vector2.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\System\Vector3.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Context.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\ContextSettings.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Event.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Export.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\GlResource.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Joystick.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Keyboard.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Mouse.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Sensor.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Touch.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\VideoMode.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\Window.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\WindowHandle.hpp" />
+    <ClInclude Include="..\..\deps\SFML\include\SFML\Window\WindowStyle.hpp" />
+    <ClInclude Include="..\..\deps\Box2D\Box2D\Box2D.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\client\Assets.cc">
+      <ObjectFileName>$(IntDir)src\client\Assets.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\GameManager.cc">
+      <ObjectFileName>$(IntDir)src\client\GameManager.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\Main.cc">
+      <ObjectFileName>$(IntDir)src\client\Main.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\..\src\client\Object.cc">
+      <ObjectFileName>$(IntDir)src\client\Object.obj</ObjectFileName>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\deps\SFML\include\SFML\Audio\SoundFileFactory.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\Graphics\Glsl.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\Graphics\Rect.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\String.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\Thread.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\ThreadLocalPtr.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\Utf.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\Vector2.inl" />
+    <None Include="..\..\deps\SFML\include\SFML\System\Vector3.inl" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

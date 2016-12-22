@@ -4,6 +4,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Data.SQLite;
 
 // State object for reading client data asynchronously
 public class StateObject
@@ -26,11 +27,20 @@ public class UdpStateObject
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public struct Packet
+public struct ClientGamePacket
 {
     public uint id;
     public float x, y;
 };
+
+[StructLayout(LayoutKind.Sequential)]
+public struct ClientLogInPacket
+{
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string username;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string password;
+}
 
 public class Server
 {
@@ -42,7 +52,7 @@ public class Server
 
     public Server() {}
 
-    static byte[] GetBytesFromPacket(Packet packet)
+    static byte[] GetBytesFromPacket(ClientGamePacket packet)
     {
         int size = Marshal.SizeOf(packet);
         byte[] bytes = new byte[size];
@@ -54,16 +64,27 @@ public class Server
         return bytes;
     }
 
-    static Packet GetPacketFromBytes(byte[] buffer)
+    static ClientGamePacket GetPacketFromBytes(byte[] buffer)
     {
-        Packet packet = new Packet();
+        ClientGamePacket packet = new ClientGamePacket();
 
         int size = Marshal.SizeOf(packet);
         IntPtr ptr = Marshal.AllocHGlobal(size);
-
         Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientGamePacket)Marshal.PtrToStructure(ptr, packet.GetType());
+        Marshal.FreeHGlobal(ptr);
 
-        packet = (Packet)Marshal.PtrToStructure(ptr, packet.GetType());
+        return packet;
+    }
+
+    static ClientLogInPacket GetLogInPacketFromBytes(byte[] buffer)
+    {
+        ClientLogInPacket packet = new ClientLogInPacket();
+
+        int size = Marshal.SizeOf(packet);
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientLogInPacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -77,7 +98,6 @@ public class Server
         // Establish the local endpoint for the socket.
         // The DNS name of the computer
         // running the listener is "host.contoso.com".
-        //IPHostEntry ipHostInfo = Dns.Resolve(Dns.GetHostName());
         IPAddress ipAddress = System.Net.IPAddress.Parse("127.0.0.1");
         int port = 8080;
 
@@ -87,8 +107,7 @@ public class Server
         Console.WriteLine("Server IP: " + ipAddress + ":" + port);
 
         // Create a TCP/IP socket.
-        Socket listener = new Socket(AddressFamily.InterNetwork,
-            SocketType.Stream, ProtocolType.Tcp);
+        Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         // Bind the socket to the local endpoint and listen for incoming connections.
         try
@@ -103,14 +122,11 @@ public class Server
 
                 // Start an asynchronous socket to listen for connections.
                 Console.WriteLine("Waiting for a TCP connection...");
-                listener.BeginAccept(
-                    new AsyncCallback(AcceptCallback),
-                    listener);
+                listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
                 // Wait until a connection is made before continuing.
                 allDone.WaitOne();
             }
-
         }
         catch (Exception e)
         {
@@ -119,7 +135,6 @@ public class Server
 
         Console.WriteLine("\nPress ENTER to continue...");
         Console.Read();
-
     }
 
     public static void AcceptCallback(IAsyncResult ar)
@@ -135,8 +150,7 @@ public class Server
         // Create the state object.
         StateObject state = new StateObject();
         state.workSocket = handler;
-        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-            new AsyncCallback(ReceiveCallbackTCP), state);
+        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallbackTCP), state);
     }
 
     public static void ReceiveCallbackTCP(IAsyncResult ar)
@@ -153,9 +167,11 @@ public class Server
 
         if (bytesRead > 0)
         {
-            Packet dataReceived = GetPacketFromBytes(state.buffer);
+            ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
 
-            Console.WriteLine("Received {0} bytes from {1}:{2}:\nID:{3}, X:{4}, Y:{5}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.id, dataReceived.x, dataReceived.y);
+            Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
+
+            //Confirm log in credentials through database
 
             /*
             // There  might be more data, so store the data received so far.

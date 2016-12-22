@@ -77,6 +77,7 @@ solution "multiplayer"
   os.copyfile("../lib/sfml-window.lib", "../project/build/bin/windows/sfml-window.lib")
   os.copyfile("../lib/sfml-window-d-2.dll", "../project/build/bin/windows/sfml-window-d-2.dll")
   os.copyfile("../lib/sfml-window-d.lib", "../project/build/bin/windows/sfml-window-d.lib")
+  os.copyfile("../lib/System.Data.SQLite.dll", "../project/build/bin/windows/System.Data.SQLite.dll")
 
 --[[--------------------------------------------
 ------------- MULTIPLAYER PROJECT --------------
@@ -106,6 +107,7 @@ project "multiplayer_server"
   targetname "multiplayer_server"
   language "C#"
   location "../project/build"
+  libdirs "../lib"
   kind "ConsoleApp"
   
   links {
@@ -115,7 +117,8 @@ project "multiplayer_server"
 	"System.Data.DataSetExtensions",
 	"System.Net.Http",
 	"System.XML",
-	"System.Xml.Linq"
+	"System.Xml.Linq",
+	"System.Data.SQLite"
   }
   
   includedirs {
