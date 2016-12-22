@@ -38,13 +38,13 @@ void GameManager::SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float3
 void GameManager::Input()
 {
   UpdateInput();
-  for (int i = 0; i < SpawnedObjects.size(); i++)
+  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
     SpawnedObjects[i]->Input();
 }
 
 void GameManager::Update()
 {
-  for (int i = 0; i < SpawnedObjects.size(); i++)
+  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
     SpawnedObjects[i]->Update();
 }
 
@@ -52,7 +52,7 @@ void GameManager::Render()
 {
   window->clear(sf::Color::White);
 
-  for (int i = 0; i < SpawnedObjects.size(); i++)
+  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
     SpawnedObjects[i]->Render();
 
   //Simulate the world 
@@ -77,7 +77,7 @@ void GameManager::UpdateInput()
 
 bool GameManager::CheckInputPressed(InputData InputType)
 {
-    for(int i = 0; i < LastInputPressed.size(); i++)
+    for(unsigned int i = 0; i < LastInputPressed.size(); i++)
     {
         if(LastInputPressed[i] == InputType)
             return true;
