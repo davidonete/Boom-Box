@@ -2,10 +2,8 @@
 #define GAMEMANAGER_H
 
 #include <SFML/Graphics.hpp>
-#include <Box2D/Box2D.h>
-#include "Object.h"
 
-#pragma once
+#include "Scenes/Scene.h"
 
 enum InputData
 {
@@ -22,29 +20,25 @@ public:
   static GameManager* GetInstance();
 
   void Init();
-
-  void SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
-
   void Input();
   void Update();
   void Render();
-    
-  bool CheckInputPressed(InputData InputType);
 
-  inline b2World* GetWorld() { return world; }
-  inline sf::RenderWindow* GetWindow() { return window; }
+  inline sf::RenderWindow* GetWindow() { return Window; }
+
+  bool CheckInputPressed(InputData InputType);
+  void ChangeScene(GameScene scene);
 
 private:
   GameManager();
   void UpdateInput();
 
-  sf::RenderWindow* window;
-  b2World* world;
+  sf::RenderWindow* Window;
+  
+  std::vector<InputData> LastInputPressed;
+  Scene* SceneInstance;
 
   static GameManager* Instance;
-
-  std::vector<Object*> SpawnedObjects;
-  std::vector<InputData> LastInputPressed;
 };
 
 #endif

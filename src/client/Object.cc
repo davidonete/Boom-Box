@@ -14,7 +14,7 @@ Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, floa
   else if (type == DynamicBody)
     BodyDef.type = b2_dynamicBody;
 
-  Body = GameManager::GetInstance()->GetWorld()->CreateBody(&BodyDef);
+  //Body = GameManager::GetInstance()->GetWorld()->CreateBody(&BodyDef);
 
   // Creates a box shape. Divide your desired width and height by 2.
   b2PolygonShape Shape;

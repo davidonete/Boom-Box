@@ -8,16 +8,17 @@
 #include "Assets.h"
 #include "GameManager.h"
 
-#define SCALE 30 //pass from pixels to box2D positions
+//Pass from pixels to box2D positions
+#define SCALE 30 
 
-/*
+GameManager* GM;
+
 void Init()
 {
-    GameManager::GetInstance()->Init();
+    GM = GameManager::GetInstance();
 
-    GameManager::GetInstance()->SpawnObject(Vec2(200.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
-    //GameManager::GetInstance()->SpawnObject(Vec2(200.0f, 20.0f), Vec2(32.0f, 32.0f), DynamicBody, 1.0f, 0.7f, "box.png", Vec2(16.0f, 16.0f));
-    GameManager::GetInstance()->SpawnObject(Vec2(400.0f, 500.0f), Vec2(800.0f, 16.0f), StaticBody, 0.0f, 5.0f, "ground.png", Vec2(400.0f, 8.0f));
+    GM->Init();
+    GM->ChangeScene(GameScene_LogIn);
 }
 
 void Remove()
@@ -37,7 +38,7 @@ void Update(GameManager* GM)
     {
         // Close window: exit
         if (event.type == sf::Event::Closed)
-        GM->GetWindow()->close();
+			GM->GetWindow()->close();
     }
 
     GM->Update();
@@ -61,8 +62,8 @@ int main()
     }
     return EXIT_SUCCESS;
 }
-*/
 
+/*
 //http://www.iforce2d.net/b2dtut/constant-speed
 
 //-------------------------------------------------------------------------------
@@ -289,6 +290,7 @@ void LogIn()
 			{
 				system("CLS");
 				std::cout << "Loged in as: " << username;
+				std::cin >> username;
 				// joined wait room...
 			}
 			else
@@ -316,9 +318,9 @@ int main()
     //thread = new sf::Thread(&DoStuff);
     //thread->launch();
 
-	LogIn();
+	//LogIn();
 
     return 0;
 }
-
+*/
 //http://www.sfml-dev.org/tutorials/1.6/network-sockets.php

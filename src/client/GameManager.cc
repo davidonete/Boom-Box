@@ -1,65 +1,55 @@
 #include "GameManager.h"
+#include "Scenes/LoginScene.h"
 
 GameManager* GameManager::Instance = nullptr;
 
-GameManager::GameManager()
+GameManager::GameManager() {}
+
+GameManager::~GameManager() 
 {
-
-}
-
-GameManager::~GameManager()
-{
-
+    delete SceneInstance;
+    LastInputPressed.clear();
 }
 
 GameManager* GameManager::GetInstance()
 {
-  if(Instance == nullptr)
-    Instance = new GameManager();
+    if(Instance == nullptr)
+		Instance = new GameManager();
 
-  return Instance;
+    return Instance;
 }
 
 void GameManager::Init()
 {
-  //Initialize window (width, height, bits per pixel)
-  window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "SFML window");
-  window->setFramerateLimit(60);
+    //Initialize window (width, height, bits per pixel)
+    Window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "SFML window");
+    Window->setFramerateLimit(60);
+
+    SceneInstance = nullptr;
 
   //Initialize world with gravity value
-  world = new b2World(b2Vec2(0.0f, 9.8f));
-}
-
-void GameManager::SpawnObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin)
-{
-  SpawnedObjects.push_back(new Object(position, scale, type, density, friction, texturePath, spriteOrigin));
+  //world = new b2World(b2Vec2(0.0f, 9.8f));
 }
 
 void GameManager::Input()
 {
-  UpdateInput();
-  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
-    SpawnedObjects[i]->Input();
+	UpdateInput();
+	SceneInstance->Input();
 }
 
 void GameManager::Update()
 {
-  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
-    SpawnedObjects[i]->Update();
+	SceneInstance->Update();
 }
 
 void GameManager::Render()
 {
-  window->clear(sf::Color::White);
+    Window->clear(sf::Color::White);
 
-  for (unsigned int i = 0; i < SpawnedObjects.size(); i++)
-    SpawnedObjects[i]->Render();
+    SceneInstance->Render();
 
-  //Simulate the world 
-  world->Step(1 / 60.0f, 8, 3);
-
-  //Update the window
-  window->display();
+    //Update the window rendering
+    Window->display();
 }
 
 void GameManager::UpdateInput()
@@ -74,7 +64,6 @@ void GameManager::UpdateInput()
         LastInputPressed.push_back(InputData_SpacePressed);
 }
 
-
 bool GameManager::CheckInputPressed(InputData InputType)
 {
     for(unsigned int i = 0; i < LastInputPressed.size(); i++)
@@ -83,4 +72,23 @@ bool GameManager::CheckInputPressed(InputData InputType)
             return true;
     }
     return false;
+}
+
+void GameManager::ChangeScene(GameScene scene)
+{
+    if (SceneInstance != nullptr)
+        delete SceneInstance;
+
+    switch (scene)
+    {
+        case GameScene_LogIn:
+            SceneInstance = new LoginScene();
+        break;
+
+        default:
+            SceneInstance = new Scene();
+        break;
+    }
+
+    SceneInstance->Init();
 }
