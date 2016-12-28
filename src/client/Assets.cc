@@ -1,20 +1,12 @@
-/**
-*** ////////////////////////////////////////////
-*** /////Autor: Juan Daniel Laserna Condado/////
-*** /////Email: S6106112@live.tees.ac.uk   /////
-*** /////            2016-2017             /////
-*** ////////////////////////////////////////////
-**/
-
 #include "Assets.h"
 
 //Windows Paths
-#define WIN_IMAGE_PATH "../../../../assets/images/"
-#define WIN_SOUND_PATH "../../../../assets/sounds/"
+#define WIN_IMAGE_PATH "../../../data/images/"
+#define WIN_SOUND_PATH "../../../data/sounds/"
 
 //IOS Paths
-#define IOS_IMAGE_PATH "assets/images/"
-#define IOS_SOUND_PATH "assets/sounds/"
+#define IOS_IMAGE_PATH "data/images/"
+#define IOS_SOUND_PATH "data/sounds/"
 
 //Path on the different OS targets
 #ifdef _WIN32

@@ -8,22 +8,16 @@
 #include "Assets.h"
 #include "GameManager.h"
 
-//Pass from pixels to box2D positions
-#define SCALE 30 
-
-GameManager* GM;
-
-void Init()
+void Init(GameManager* GM)
 {
-    GM = GameManager::GetInstance();
-
     GM->Init();
     GM->ChangeScene(GameScene_LogIn);
 }
 
-void Remove()
+void Remove(GameManager* GM)
 {
-    //To Do: Remove GameManager
+    GM->CloseClient();
+    delete GM;
 }
 
 void Input(GameManager* GM)
@@ -33,14 +27,6 @@ void Input(GameManager* GM)
 
 void Update(GameManager* GM)
 {
-    sf::Event event;
-    while (GM->GetWindow()->pollEvent(event))
-    {
-        // Close window: exit
-        if (event.type == sf::Event::Closed)
-			GM->GetWindow()->close();
-    }
-
     GM->Update();
 }
 
@@ -53,13 +39,15 @@ int main()
 {
     GameManager* GM = GameManager::GetInstance();
 
-    Init();
+    Init(GM);
     while (GM->GetWindow()->isOpen())
     {
         Input(GM);
         Update(GM);
         Render(GM);
     }
+
+    Remove(GM);
     return EXIT_SUCCESS;
 }
 

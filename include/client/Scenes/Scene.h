@@ -1,8 +1,12 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+#include <SFGUI/SFGUI.hpp>
+#include <SFGUI/Widgets.hpp>
+#include <SFGUI/Renderers.hpp> 
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
+
 #include "Object.h"
 
 enum GameScene

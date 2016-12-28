@@ -1,8 +1,6 @@
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 
-#include <SFML/Graphics.hpp>
-
 #include "Scenes/Scene.h"
 
 enum InputData
@@ -28,6 +26,8 @@ public:
 
   bool CheckInputPressed(InputData InputType);
   void ChangeScene(GameScene scene);
+
+  void CloseClient();
 
 private:
   GameManager();

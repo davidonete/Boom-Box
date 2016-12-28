@@ -1,7 +1,3 @@
-//#include <SFGUI/SFGUI.hpp>
-//#include <SFGUI/Widgets.hpp>
-#include <SFML/Graphics.hpp>
-
 #include "Scenes/Scene.h"
 
 class LoginScene : public Scene
@@ -16,7 +12,11 @@ public:
     void Render() override;
 
 private:
-    //sfg::SFGUI GUI;
-    //std::shared_ptr<sfg::Window> Window;
+    sfg::SFGUI GUI;
+    sfg::Window::Ptr Window;
     sf::RenderWindow* RenderWindow;
+    sf::Clock GUIClock;
+
+    sf::Texture background;
+    sf::Sprite sprite;
 };

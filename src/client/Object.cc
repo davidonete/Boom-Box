@@ -2,7 +2,8 @@
 #include "GameManager.h"
 #include "Assets.h"
 
-#define SCALE 30.0f //pass from pixels to box2D positions
+//Pass from pixels to box2D coords
+#define SCALE 30.0f 
 
 Object::Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin)
 {
@@ -103,7 +104,7 @@ void Object::Update()
 
 void Object::Render()
 {
-  GameManager::GetInstance()->GetWindow()->draw(LastUpdatedSprite);
+  GM->GetWindow()->draw(LastUpdatedSprite);
 }
 
 Vec2 Object::GetPosition()

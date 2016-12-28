@@ -7,7 +7,8 @@ solution "multiplayer_server"
 		defines { "_CRT_SECURE_NO_WARNINGS" }
 		
 	configuration {"windows", "x64"}
-		targetdir "../bin/Windows"
+		targetdir "../bin/Windows/Release"
+		debugdir "../bin/Windows/Release"
 
 	configuration "macosx"
 		targetdir "../bin/MacOSX"
@@ -22,7 +23,6 @@ project "multiplayer_server"
 	targetname "multiplayer_server"
 	language "C#"
 	location (_OPTIONS["to"] .. "/build")
-	libdirs "../lib"
 	kind "ConsoleApp"
 
 	links {
@@ -53,4 +53,7 @@ project "multiplayer_server"
 		defines { "NDEBUG", "LUA_COMPAT_MODULE" }
 		flags { "Optimize" }
 		
+	configuration "windows" 
+		os.mkdir("../bin/Windows/Release")
+		os.copyfile("../lib/Release/System.Data.SQLite.dll", "../bin/Windows/Release/System.Data.SQLite.dll")
 	--TODO: MacOSX configuration

@@ -92,3 +92,8 @@ void GameManager::ChangeScene(GameScene scene)
 
     SceneInstance->Init();
 }
+
+void GameManager::CloseClient()
+{
+    //std::cout << "Client Closed";
+}
