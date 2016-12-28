@@ -1,5 +1,14 @@
-#include "GameManager.h"
+#include "System/GameManager.h"
 #include "Scenes/LoginScene.h"
+
+//Path of assets on the different OS targets
+#ifdef _WIN32
+    #define IMAGE_PATH "../../../data/images/"
+    #define SOUND_PATH "../../../data/sound/"
+#elif __APPLE__
+    #define IMAGE_PATH "data/images/"
+    #define SOUND_PATH "data/sound/"
+#endif
 
 GameManager* GameManager::Instance = nullptr;
 
@@ -7,14 +16,19 @@ GameManager::GameManager() {}
 
 GameManager::~GameManager() 
 {
+    delete Network;
+    delete Window;
     delete SceneInstance;
     LastInputPressed.clear();
 }
 
 GameManager* GameManager::GetInstance()
 {
-    if(Instance == nullptr)
-		Instance = new GameManager();
+    if (Instance == nullptr)
+    {
+        Instance = new GameManager();
+        Instance->Init();
+    }
 
     return Instance;
 }
@@ -22,8 +36,11 @@ GameManager* GameManager::GetInstance()
 void GameManager::Init()
 {
     //Initialize window (width, height, bits per pixel)
-    Window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "SFML window");
+    Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "SFML window");//, sf::Style::Fullscreen);
     Window->setFramerateLimit(60);
+
+    Network = new NetworkManager();
+    Network->Init();
 
     SceneInstance = nullptr;
 
@@ -93,7 +110,17 @@ void GameManager::ChangeScene(GameScene scene)
     SceneInstance->Init();
 }
 
-void GameManager::CloseClient()
+void GameManager::CloseGame()
 {
-    //std::cout << "Client Closed";
+    Window->close();
+}
+
+std::string GameManager::GetImagePath(const char* image) {
+    std::string path = IMAGE_PATH;
+    return path.append(image);
+}
+
+std::string GameManager::GetSoundPath(const char* sound) {
+    std::string path = SOUND_PATH;
+    return path.append(sound);
 }

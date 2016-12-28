@@ -1,7 +1,16 @@
+//
+//  GameManager.h
+//  Multiplayer Game
+//
+//  Created by David Parra on 08/12/16.
+//  Copyright © 2016 David Parra. All rights reserved.
+//
+
 #ifndef GAMEMANAGER_H
 #define GAMEMANAGER_H
 
 #include "Scenes/Scene.h"
+#include "System/NetworkManager.h"
 
 enum InputData
 {
@@ -23,20 +32,22 @@ public:
   void Render();
 
   inline sf::RenderWindow* GetWindow() { return Window; }
+  static std::string GetImagePath(const char * image);
+  static std::string GetSoundPath(const char * sound);
 
   bool CheckInputPressed(InputData InputType);
   void ChangeScene(GameScene scene);
+  void CloseGame();
 
-  void CloseClient();
+  NetworkManager* Network;
 
 private:
   GameManager();
   void UpdateInput();
 
-  sf::RenderWindow* Window;
-  
-  std::vector<InputData> LastInputPressed;
   Scene* SceneInstance;
+  sf::RenderWindow* Window;
+  std::vector<InputData> LastInputPressed;
 
   static GameManager* Instance;
 };

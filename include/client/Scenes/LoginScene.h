@@ -1,3 +1,6 @@
+#ifndef LOGINSCENE_H
+#define LOGINSCENE_H
+
 #include "Scenes/Scene.h"
 
 class LoginScene : public Scene
@@ -12,6 +15,9 @@ public:
     void Render() override;
 
 private:
+    void OnLoginPressed();
+    void OnExitPressed();
+
     sfg::SFGUI GUI;
     sfg::Window::Ptr Window;
     sf::RenderWindow* RenderWindow;
@@ -20,3 +26,5 @@ private:
     sf::Texture background;
     sf::Sprite sprite;
 };
+
+#endif

@@ -1,6 +1,5 @@
 #include "Scenes/LoginScene.h"
-#include "GameManager.h"
-#include "Assets.h"
+#include "System/GameManager.h"
 
 LoginScene::LoginScene() {}
 
@@ -20,19 +19,21 @@ void LoginScene::Init()
     Window = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
 
     sfg::Entry::Ptr username_entry = sfg::Entry::Create();
-    username_entry->SetMaximumLength(15);
+    username_entry->SetMaximumLength(32);
     username_entry->SetRequisition(sf::Vector2f(100.0f, 0.0f));
 
     sfg::Entry::Ptr password = sfg::Entry::Create();
     password->HideText('*');
-    password->SetMaximumLength(50);
+    password->SetMaximumLength(32);
     password->SetRequisition(sf::Vector2f(100.0f, 0.0f));
 
     sfg::Button::Ptr LogIn = sfg::Button::Create("Log In");
     LogIn->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+    LogIn->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&LoginScene::OnLoginPressed, this));
 
     sfg::Button::Ptr Exit = sfg::Button::Create("Exit");
     Exit->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+    Exit->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&LoginScene::OnExitPressed, this));
 
     sfg::Table::Ptr m_table = sfg::Table::Create();
     m_table->Attach(sfg::Label::Create(L"Username:"), sf::Rect<sf::Uint32>(0, 1, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
@@ -59,9 +60,12 @@ void LoginScene::Init()
     Window->SetPosition(pos);
 
     //Background
-    background.loadFromFile(ASSETS::ImagePath("background.jpg"));
+    background.loadFromFile(GameManager::GetImagePath("background.jpg"));
     sprite.setTexture(background);
-    sprite.setScale(sf::Vector2f(0.5f, 1.0f));
+    sf::Vector2f bgScale;
+    bgScale.x = (winSize.x * 0.5f) / 800.0f;
+    bgScale.y = (winSize.y * 1.0f) / 600.0f;
+    sprite.setScale(bgScale);
 }
 
 void LoginScene::Input() {}
@@ -83,4 +87,14 @@ void LoginScene::Render()
 {
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
+}
+
+void LoginScene::OnLoginPressed()
+{
+    std::cout << "Login Pressed\n";
+}
+
+void LoginScene::OnExitPressed()
+{
+    GameManager::GetInstance()->CloseGame();
 }

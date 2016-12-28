@@ -1,3 +1,11 @@
+//
+//  Scene.h
+//  Multiplayer Game
+//
+//  Created by David Parra on 08/12/16.
+//  Copyright © 2016 David Parra. All rights reserved.
+//
+
 #ifndef SCENE_H
 #define SCENE_H
 
@@ -7,7 +15,7 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 
-#include "Object.h"
+#include "Game/Object.h"
 
 enum GameScene
 {

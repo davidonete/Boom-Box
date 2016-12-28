@@ -1,3 +1,11 @@
+//
+//  Object.h
+//  Multiplayer Game
+//
+//  Created by David Parra on 08/12/16.
+//  Copyright © 2016 David Parra. All rights reserved.
+//
+
 #ifndef OBJECT_H
 #define OBJECT_H
 
