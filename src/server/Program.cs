@@ -33,6 +33,16 @@ public struct ClientGamePacket
     public float x, y;
 };
 
+[StructLayout(LayoutKind.Sequential, Pack = 8)]
+public struct ServerConfirmationPacket
+{
+    public uint id;
+    [MarshalAs(UnmanagedType.I1)]
+    public bool accepted;
+    [MarshalAs(UnmanagedType.I1)]
+    public bool authority;
+};
+
 [StructLayout(LayoutKind.Sequential)]
 public struct ClientLogInPacket
 {
@@ -42,12 +52,19 @@ public struct ClientLogInPacket
     public string password;
 }
 
+public enum ServerState
+{
+    WaitRoom,
+    Battle
+}
+
 public class Server
 {
+    public static ServerState serverState = ServerState.WaitRoom;
+    public static uint numPlayers = 0;
+
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
-
-    public static bool tcpServer = true;
     public static bool messageReceived = false;
 
     public Server() {}
@@ -64,7 +81,19 @@ public class Server
         return bytes;
     }
 
-    static ClientGamePacket GetPacketFromBytes(byte[] buffer)
+    static byte[] GetBytesFromPacket(ServerConfirmationPacket packet)
+    {
+        int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
+        byte[] bytes = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(packet, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);
+        return bytes;
+    }
+
+    static ClientGamePacket GetGamePacketFromBytes(byte[] buffer)
     {
         ClientGamePacket packet = new ClientGamePacket();
 
@@ -167,12 +196,51 @@ public class Server
 
         if (bytesRead > 0)
         {
-            ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
+            if (serverState == ServerState.WaitRoom)
+            {
+                int LoginPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogInPacket));
+                if (bytesRead == LoginPacketSize)
+                {
+                    ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
+                    Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
 
-            Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
+                    //Confirm log in credentials through database
+                    SQLiteConnection db_connection = new SQLiteConnection("Data Source="+ System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True");
+                    db_connection.Open();
 
-            //Confirm log in credentials through database
+                    string query = "select * from Users";
+                    SQLiteCommand command = new SQLiteCommand(query, db_connection);
 
+                    SQLiteDataReader reader = command.ExecuteReader();
+
+                    ServerConfirmationPacket packet;
+                    packet.id = 0;
+                    packet.accepted = false;
+                    packet.authority = false;
+
+                    if (reader.HasRows)
+                    {
+                        while (reader.Read())
+                        {
+                            if ((string)reader["USERNAME"] == dataReceived.username)
+                            {
+                                if ((string)reader["PASSWORD"] == dataReceived.password)
+                                {
+                                    if (numPlayers < 1)
+                                        packet.authority = true;
+
+                                    numPlayers++;
+                                    packet.id = numPlayers;
+                                    packet.accepted = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    db_connection.Close();
+                    Send(handler, GetBytesFromPacket(packet));
+                }
+            }
             /*
             // There  might be more data, so store the data received so far.
             state.sb.Append(Encoding.ASCII.GetString(
@@ -209,6 +277,13 @@ public class Server
         // Convert the string data to byte data using ASCII encoding.
         byte[] byteData = Encoding.ASCII.GetBytes(data);
 
+        // Begin sending the data to the remote device.
+        handler.BeginSend(byteData, 0, byteData.Length, 0,
+            new AsyncCallback(SendCallbackTCP), handler);
+    }
+
+    private static void Send(Socket handler, byte[] byteData)
+    {
         // Begin sending the data to the remote device.
         handler.BeginSend(byteData, 0, byteData.Length, 0,
             new AsyncCallback(SendCallbackTCP), handler);
@@ -276,7 +351,7 @@ public class Server
         messageReceived = true;
     }
 
-    private static void SendCallbackUDP(IAsyncResult ar)
+    private static void SendCallbackUDP(IAsyncResult ar)    
     {
         UdpClient client = (UdpClient)ar.AsyncState;
 
@@ -285,10 +360,10 @@ public class Server
 
     public static int Main(String[] args)
     {
-        if (tcpServer)
-            StartListeningTCP();
-        else
-            StartListeningUDP();
+        Thread TCPThread = new Thread(StartListeningUDP);
+        TCPThread.Start();
+
+        StartListeningTCP();
 
         return 0;
     }

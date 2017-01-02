@@ -28,7 +28,7 @@ class Scene
 {
 public:
 	Scene();
-	~Scene();
+	virtual ~Scene();
 
     virtual void Init();
 	virtual void Input();

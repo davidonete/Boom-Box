@@ -4,10 +4,8 @@
 //Path of assets on the different OS targets
 #ifdef _WIN32
     #define IMAGE_PATH "../../../data/images/"
-    #define SOUND_PATH "../../../data/sound/"
 #elif __APPLE__
     #define IMAGE_PATH "data/images/"
-    #define SOUND_PATH "data/sound/"
 #endif
 
 GameManager* GameManager::Instance = nullptr;
@@ -36,7 +34,7 @@ GameManager* GameManager::GetInstance()
 void GameManager::Init()
 {
     //Initialize window (width, height, bits per pixel)
-    Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "SFML window");//, sf::Style::Fullscreen);
+    Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "Super Awesome Game - v1.0");//, sf::Style::Fullscreen);
     Window->setFramerateLimit(60);
 
     Network = new NetworkManager();
@@ -94,12 +92,19 @@ bool GameManager::CheckInputPressed(InputData InputType)
 void GameManager::ChangeScene(GameScene scene)
 {
     if (SceneInstance != nullptr)
+    {
         delete SceneInstance;
+        SceneInstance = nullptr;
+    }
 
     switch (scene)
     {
         case GameScene_LogIn:
             SceneInstance = new LoginScene();
+        break;
+
+        case GameScene_WaitRoom:
+            SceneInstance = new Scene();
         break;
 
         default:
@@ -112,15 +117,12 @@ void GameManager::ChangeScene(GameScene scene)
 
 void GameManager::CloseGame()
 {
+    Network->Disconnect(TCP);
+    Network->Disconnect(UDP);
     Window->close();
 }
 
-std::string GameManager::GetImagePath(const char* image) {
+std::string GameManager::GetImagePath(const char* filename) {
     std::string path = IMAGE_PATH;
-    return path.append(image);
-}
-
-std::string GameManager::GetSoundPath(const char* sound) {
-    std::string path = SOUND_PATH;
-    return path.append(sound);
+    return path.append(filename);
 }

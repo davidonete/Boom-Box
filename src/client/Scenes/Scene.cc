@@ -7,7 +7,10 @@ Scene::~Scene()
     Objects.clear();
 }
 
-void Scene::Init() {}
+void Scene::Init() 
+{
+    World = new b2World(b2Vec2(0.0f, 9.8f));
+}
 
 void Scene::Input()
 {

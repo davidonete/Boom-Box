@@ -29,9 +29,17 @@ struct GamePacket
     float x, y;
 };
 
-struct ServerLogInPacket
+struct ServerConfirmPacket
 {
-    bool confirm;
+    unsigned int id;
+    bool accepted;
+    bool authority;
+};
+
+struct ClientInfo
+{
+    unsigned int id;
+    bool authority;
 };
 
 class NetworkManager
@@ -47,12 +55,21 @@ public:
     bool SendPacket(ConnectionType type, LogInPacket packet);
     bool SendPacket(ConnectionType type, GamePacket packet);
 
-    bool ReceivePacket(ConnectionType type, ServerLogInPacket &packet);
+    bool ReceivePacket(ConnectionType type, ServerConfirmPacket &packet);
+
+    /** Gets and sets if the current client is the authority of the game. */
+    inline void SetAuthority(bool authority) { client.authority = authority; }
+    inline bool IsAuthority() { return client.authority; }
+
+    /** Gets/Sets the id used by the server to identify this client. */
+    inline unsigned int GetClientID() { return client.id; }
+    inline void SetClientID(unsigned int id) { client.id = id; }
 
 private:
     sf::TcpSocket tcpSocket;
     sf::UdpSocket udpSocket;
 
+    ClientInfo client;
 };
 
 #endif

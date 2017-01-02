@@ -1,9 +1,14 @@
 #include "Scenes/LoginScene.h"
 #include "System/GameManager.h"
 
+bool deleteSceneRequest = false;
+
 LoginScene::LoginScene() {}
 
-LoginScene::~LoginScene() {}
+LoginScene::~LoginScene() 
+{
+    Window->RemoveAll();
+}
 
 void LoginScene::Init() 
 {
@@ -16,16 +21,32 @@ void LoginScene::Init()
 
     RenderWindow->resetGLStates();
 
+    //GUI
+    InitGUI();
+
+    //Background
+    background.loadFromFile(GameManager::GetImagePath("background.jpg"));
+    sprite.setTexture(background);
+
+    sf::Vector2u winSize = RenderWindow->getSize();
+    sf::Vector2f bgScale;
+    bgScale.x = (winSize.x * 0.5f) / 800.0f;
+    bgScale.y = (winSize.y * 1.0f) / 600.0f;
+    sprite.setScale(bgScale);
+}
+
+void LoginScene::InitGUI()
+{
     Window = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
 
-    sfg::Entry::Ptr username_entry = sfg::Entry::Create();
-    username_entry->SetMaximumLength(32);
-    username_entry->SetRequisition(sf::Vector2f(100.0f, 0.0f));
+    Username = sfg::Entry::Create();
+    Username->SetMaximumLength(32);
+    Username->SetRequisition(sf::Vector2f(100.0f, 0.0f));
 
-    sfg::Entry::Ptr password = sfg::Entry::Create();
-    password->HideText('*');
-    password->SetMaximumLength(32);
-    password->SetRequisition(sf::Vector2f(100.0f, 0.0f));
+    Password = sfg::Entry::Create();
+    Password->HideText('*');
+    Password->SetMaximumLength(32);
+    Password->SetRequisition(sf::Vector2f(100.0f, 0.0f));
 
     sfg::Button::Ptr LogIn = sfg::Button::Create("Log In");
     LogIn->SetRequisition(sf::Vector2f(100.0f, 5.0f));
@@ -35,37 +56,32 @@ void LoginScene::Init()
     Exit->SetRequisition(sf::Vector2f(100.0f, 5.0f));
     Exit->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&LoginScene::OnExitPressed, this));
 
-    sfg::Table::Ptr m_table = sfg::Table::Create();
-    m_table->Attach(sfg::Label::Create(L"Username:"), sf::Rect<sf::Uint32>(0, 1, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    m_table->Attach(username_entry, sf::Rect<sf::Uint32>(1, 1, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
-    m_table->Attach(sfg::Label::Create(L"Password:"), sf::Rect<sf::Uint32>(0, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    m_table->Attach(password, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    m_table->Attach(LogIn, sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::EXPAND, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
-    m_table->Attach(Exit, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::EXPAND, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
-    m_table->SetRowSpacings(5.f);
-    m_table->SetColumnSpacings(5.f);
+    ErrorMsg = sfg::Label::Create("Log In:");
+    ErrorMsg->SetId("ErrorMsg");
     
+    sfg::Table::Ptr Table = sfg::Table::Create();
+    Table->Attach(ErrorMsg, sf::Rect<sf::Uint32>(0, 0, 2, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(sfg::Label::Create(L"Username:"), sf::Rect<sf::Uint32>(0, 1, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(Username, sf::Rect<sf::Uint32>(1, 1, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(sfg::Label::Create(L"Password:"), sf::Rect<sf::Uint32>(0, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(Password, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(LogIn, sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table->Attach(Exit, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table->SetRowSpacings(5.f);
+    Table->SetColumnSpacings(5.f);
+
     // Pack into box
     sfg::Box::Ptr Box = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-    Box->Pack(m_table, true);
+    Box->Pack(Table, true);
+    Box->SetSpacing(5.0f);
 
-    // Set box spacing
-    Box->SetSpacing(5.f);
-
-    // Add our box to the window
+    // Add box to the window
     Window->Add(Box);
-    sf::Vector2f loginsize = Window->GetRequisition();
-    sf::Vector2u winSize = RenderWindow->getSize();
-    sf::Vector2f pos = sf::Vector2f((winSize.x * 0.5f) - (loginsize.x * 0.5f), (winSize.y * 0.5f) - (loginsize.y * 0.5f));
-    Window->SetPosition(pos);
 
-    //Background
-    background.loadFromFile(GameManager::GetImagePath("background.jpg"));
-    sprite.setTexture(background);
-    sf::Vector2f bgScale;
-    bgScale.x = (winSize.x * 0.5f) / 800.0f;
-    bgScale.y = (winSize.y * 1.0f) / 600.0f;
-    sprite.setScale(bgScale);
+    sf::Vector2f loginSize = Window->GetRequisition();
+    sf::Vector2u winSize = RenderWindow->getSize();
+    sf::Vector2f pos = sf::Vector2f((winSize.x * 0.5f) - (loginSize.x * 0.5f), (winSize.y * 0.5f) - (loginSize.y * 0.5f));
+    Window->SetPosition(pos);
 }
 
 void LoginScene::Input() {}
@@ -77,7 +93,7 @@ void LoginScene::Update()
     {
         Window->HandleEvent(event);
         if (event.type == sf::Event::Closed)
-            RenderWindow->close();
+            GameManager::GetInstance()->CloseGame();
     }
     
     Window->Update(GUIClock.getElapsedTime().asSeconds());
@@ -87,14 +103,58 @@ void LoginScene::Render()
 {
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
+
+    if(deleteSceneRequest)
+        GameManager::GetInstance()->ChangeScene(GameScene_WaitRoom);
 }
 
 void LoginScene::OnLoginPressed()
 {
-    std::cout << "Login Pressed\n";
+    if (Username->GetText().isEmpty() || Password->GetText().isEmpty())
+        LoginError("Wrong username or password. Try again.");
+    else
+    {
+        GameManager* GM = GameManager::GetInstance();
+        if (GM->Network->Connect(TCP))
+        {
+            LogInPacket packet;
+            std::string username = Username->GetText().toAnsiString();
+            std::string password = Password->GetText().toAnsiString();
+
+            std::strcpy(packet.username, username.c_str());
+            std::strcpy(packet.password, password.c_str());
+
+            GM->Network->SendPacket(TCP, packet);
+
+            ServerConfirmPacket confirmation;
+            if (GM->Network->ReceivePacket(TCP, confirmation))
+            {
+                if (confirmation.accepted)
+                {
+                    if (confirmation.authority)
+                        GM->Network->SetAuthority(true);
+
+                    GM->Network->SetClientID(confirmation.id);
+                    deleteSceneRequest = true;
+                }
+                else
+                    LoginError("Wrong username or password. Try again.");
+            }
+            else
+                LoginError("Error receiving confirmation. Try again later.");
+        }
+        else
+            LoginError("Error conecting to the server. Try again later.");
+    }
 }
 
 void LoginScene::OnExitPressed()
 {
     GameManager::GetInstance()->CloseGame();
+}
+
+void LoginScene::LoginError(sf::String message)
+{
+    sfg::Context::Get().GetEngine().SetProperty("Label#ErrorMsg", "Color", sf::Color(127, 0, 0, 255));
+    ErrorMsg->SetText(message);
 }

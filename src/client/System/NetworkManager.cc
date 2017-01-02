@@ -11,7 +11,8 @@ NetworkManager::~NetworkManager() {}
 
 void NetworkManager::Init()
 {
-
+    client.authority = false;
+    client.id = 0;
 }
 
 bool NetworkManager::Connect(ConnectionType type)
@@ -39,7 +40,10 @@ bool NetworkManager::Connect(ConnectionType type)
 void NetworkManager::Disconnect(ConnectionType type)
 {
     if (type == TCP)
+    {
+        tcpSocket.send("", 1);
         tcpSocket.disconnect();
+    }
     else
         udpSocket.unbind();
 }
@@ -84,10 +88,10 @@ bool NetworkManager::SendPacket(ConnectionType type, GamePacket packet)
     }
 }
 
-bool NetworkManager::ReceivePacket(ConnectionType type, ServerLogInPacket & packet)
+bool NetworkManager::ReceivePacket(ConnectionType type, ServerConfirmPacket &packet)
 {
     //Prepare buffer to receive
-    const int size = sizeof(packet);
+    const int size = sizeof(ServerConfirmPacket);
     char buffer[size];
     std::size_t Received;
 
@@ -95,7 +99,10 @@ bool NetworkManager::ReceivePacket(ConnectionType type, ServerLogInPacket & pack
     {
         //it is blocking until it receives data (can set the socket to non-blocking)
         if (tcpSocket.receive(buffer, size, Received) != sf::Socket::Done)
-            std::cout << "Error receiving TCP packet..."; return false;
+        {
+            std::cout << "Error receiving TCP packet...";
+            return false;
+        }
 
         memcpy(&packet, buffer, size);
         return true;

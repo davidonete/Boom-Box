@@ -7,7 +7,7 @@ class LoginScene : public Scene
 {
 public:
     LoginScene();
-    ~LoginScene();
+    ~LoginScene() override;
 
     void Init() override;
     void Input() override;
@@ -15,8 +15,10 @@ public:
     void Render() override;
 
 private:
+    void InitGUI();
     void OnLoginPressed();
     void OnExitPressed();
+    void LoginError(sf::String message);
 
     sfg::SFGUI GUI;
     sfg::Window::Ptr Window;
@@ -25,6 +27,10 @@ private:
 
     sf::Texture background;
     sf::Sprite sprite;
+
+    sfg::Label::Ptr ErrorMsg;
+    sfg::Entry::Ptr Username;
+    sfg::Entry::Ptr Password;
 };
 
 #endif
