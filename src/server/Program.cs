@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
 using System.Data.SQLite;
+using System.Collections.Generic;
 
 // State object for reading client data asynchronously
 public class StateObject
@@ -29,14 +30,14 @@ public class UdpStateObject
 [StructLayout(LayoutKind.Sequential)]
 public struct ClientGamePacket
 {
-    public uint id;
+    public uint ID;
     public float x, y;
 };
 
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 public struct ServerConfirmationPacket
 {
-    public uint id;
+    public uint ID;
     [MarshalAs(UnmanagedType.I1)]
     public bool accepted;
     [MarshalAs(UnmanagedType.I1)]
@@ -52,6 +53,21 @@ public struct ClientLogInPacket
     public string password;
 }
 
+[StructLayout(LayoutKind.Sequential)]
+public struct ClientChatPacket
+{
+    public uint ID;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 58)]
+    public string message;
+}
+
+public struct PlayerInfo
+{
+    public uint ID;
+    public bool authority;
+    public Socket handler;
+}
+
 public enum ServerState
 {
     WaitRoom,
@@ -62,6 +78,7 @@ public class Server
 {
     public static ServerState serverState = ServerState.WaitRoom;
     public static uint numPlayers = 0;
+    public static List<PlayerInfo> players;
 
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
@@ -82,6 +99,18 @@ public class Server
     }
 
     static byte[] GetBytesFromPacket(ServerConfirmationPacket packet)
+    {
+        int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
+        byte[] bytes = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(packet, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);
+        return bytes;
+    }
+
+    static byte[] GetBytesFromPacket(ClientChatPacket packet)
     {
         int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
         byte[] bytes = new byte[size];
@@ -114,6 +143,19 @@ public class Server
         IntPtr ptr = Marshal.AllocHGlobal(size);
         Marshal.Copy(buffer, 0, ptr, size);
         packet = (ClientLogInPacket)Marshal.PtrToStructure(ptr, packet.GetType());
+        Marshal.FreeHGlobal(ptr);
+
+        return packet;
+    }
+
+    static ClientChatPacket GetChatPacketFromBytes(byte[] buffer)
+    {
+        ClientChatPacket packet = new ClientChatPacket();
+
+        int size = Marshal.SizeOf(packet);
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientChatPacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -198,48 +240,12 @@ public class Server
         {
             if (serverState == ServerState.WaitRoom)
             {
+                //If the packet is a LogInPacket
                 int LoginPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogInPacket));
                 if (bytesRead == LoginPacketSize)
-                {
-                    ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
-                    Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
-
-                    //Confirm log in credentials through database
-                    SQLiteConnection db_connection = new SQLiteConnection("Data Source="+ System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True");
-                    db_connection.Open();
-
-                    string query = "select * from Users";
-                    SQLiteCommand command = new SQLiteCommand(query, db_connection);
-
-                    SQLiteDataReader reader = command.ExecuteReader();
-
-                    ServerConfirmationPacket packet;
-                    packet.id = 0;
-                    packet.accepted = false;
-                    packet.authority = false;
-
-                    if (reader.HasRows)
-                    {
-                        while (reader.Read())
-                        {
-                            if ((string)reader["USERNAME"] == dataReceived.username)
-                            {
-                                if ((string)reader["PASSWORD"] == dataReceived.password)
-                                {
-                                    if (numPlayers < 1)
-                                        packet.authority = true;
-
-                                    numPlayers++;
-                                    packet.id = numPlayers;
-                                    packet.accepted = true;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    db_connection.Close();
-                    Send(handler, GetBytesFromPacket(packet));
-                }
+                    LogInHandler(state, handler);
+                else
+                    MessageHandler(state, handler);
             }
             /*
             // There  might be more data, so store the data received so far.
@@ -270,6 +276,82 @@ public class Server
         {
             Console.WriteLine("Nothing received");
         }
+    }
+
+    public static void MessageHandler(StateObject state, Socket handler)
+    {
+        ClientChatPacket dataReceived = GetChatPacketFromBytes(state.buffer);
+
+        //Broadcast the message to the rest of the players
+        for(int i = 0; i < players.Count; i++)
+        {
+            if(players[i].ID != dataReceived.ID)
+                Send(players[i].handler, GetBytesFromPacket(dataReceived));
+        }
+    }
+
+    public static void LogInHandler(StateObject state, Socket handler)
+    {
+        ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
+        //Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
+
+        //Confirm log in credentials through database
+        SQLiteConnection db_connection = new SQLiteConnection("Data Source=" + System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True");
+        db_connection.Open();
+
+        string query = "select * from Users";
+        SQLiteCommand command = new SQLiteCommand(query, db_connection);
+
+        SQLiteDataReader reader = command.ExecuteReader();
+
+        ServerConfirmationPacket packet;
+        packet.ID = 0;
+        packet.accepted = false;
+        packet.authority = false;
+
+        if (reader.HasRows)
+        {
+            while (reader.Read())
+            {
+                //Check if the username & password are correct
+                if ((string)reader["USERNAME"] == dataReceived.username && (string)reader["PASSWORD"] == dataReceived.password)
+                {
+                    //Check if that user has already logged in
+                    uint id = Convert.ToUInt32(reader["ID"]);
+                    bool playerAlreadyLogged = false;
+
+                    if (players.Count > 0)
+                    {
+                        for (int i = 0; i < players.Count; i++)
+                        {
+                            if (players[i].ID == id)
+                            {
+                                playerAlreadyLogged = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!playerAlreadyLogged)
+                    {
+                        if (players.Count < 1)
+                            packet.authority = true;
+
+                        packet.ID = id;
+                        packet.accepted = true;
+
+                        PlayerInfo newPlayer;
+                        newPlayer.ID = id;
+                        newPlayer.handler = handler;
+                        newPlayer.authority = packet.authority;
+                        players.Add(newPlayer);
+                    }
+                    break;
+                }
+            }
+        }
+        db_connection.Close();
+        Send(handler, GetBytesFromPacket(packet));
     }
 
     private static void Send(Socket handler, String data)
@@ -358,11 +440,17 @@ public class Server
         Console.WriteLine("bytes sent: {0}", client.EndSend(ar));
     }
 
+    private static void Init()
+    {
+        players = new List<PlayerInfo>();
+    }
+
     public static int Main(String[] args)
     {
-        Thread TCPThread = new Thread(StartListeningUDP);
-        TCPThread.Start();
+        Init();
 
+        Thread UDPThread = new Thread(StartListeningUDP);
+        UDPThread.Start();
         StartListeningTCP();
 
         return 0;

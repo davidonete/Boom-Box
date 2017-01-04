@@ -1,5 +1,6 @@
 #include "System/GameManager.h"
 #include "Scenes/LoginScene.h"
+#include "Scenes/WaitRoomScene.h"
 
 //Path of assets on the different OS targets
 #ifdef _WIN32
@@ -34,7 +35,8 @@ GameManager* GameManager::GetInstance()
 void GameManager::Init()
 {
     //Initialize window (width, height, bits per pixel)
-    Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "Super Awesome Game - v1.0");//, sf::Style::Fullscreen);
+    Window = new sf::RenderWindow(sf::VideoMode(600, 400, 32), "Super Awesome Game - v1.0");
+    //Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "Super Awesome Game - v1.0");//, sf::Style::Fullscreen);
     Window->setFramerateLimit(60);
 
     Network = new NetworkManager();
@@ -77,6 +79,10 @@ void GameManager::UpdateInput()
         LastInputPressed.push_back(InputData_LeftPressed);
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space))
         LastInputPressed.push_back(InputData_SpacePressed);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Return))
+        LastInputPressed.push_back(InputData_EnterPressed);
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Tab))
+        LastInputPressed.push_back(InputData_TabPressed);
 }
 
 bool GameManager::CheckInputPressed(InputData InputType)
@@ -104,7 +110,7 @@ void GameManager::ChangeScene(GameScene scene)
         break;
 
         case GameScene_WaitRoom:
-            SceneInstance = new Scene();
+            SceneInstance = new WaitRoomScene();
         break;
 
         default:

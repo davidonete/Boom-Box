@@ -7,7 +7,7 @@ class LoginScene : public Scene
 {
 public:
     LoginScene();
-    ~LoginScene() override;
+    ~LoginScene();
 
     void Init() override;
     void Input() override;
@@ -31,6 +31,8 @@ private:
     sfg::Label::Ptr ErrorMsg;
     sfg::Entry::Ptr Username;
     sfg::Entry::Ptr Password;
+
+    bool deleteSceneRequest = false;
 };
 
 #endif

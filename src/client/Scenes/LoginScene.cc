@@ -1,8 +1,6 @@
 #include "Scenes/LoginScene.h"
 #include "System/GameManager.h"
 
-bool deleteSceneRequest = false;
-
 LoginScene::LoginScene() {}
 
 LoginScene::~LoginScene() 
@@ -82,6 +80,9 @@ void LoginScene::InitGUI()
     sf::Vector2u winSize = RenderWindow->getSize();
     sf::Vector2f pos = sf::Vector2f((winSize.x * 0.5f) - (loginSize.x * 0.5f), (winSize.y * 0.5f) - (loginSize.y * 0.5f));
     Window->SetPosition(pos);
+
+    Window->Update(0.0f);
+    Username->GrabFocus();
 }
 
 void LoginScene::Input() {}
@@ -94,9 +95,26 @@ void LoginScene::Update()
         Window->HandleEvent(event);
         if (event.type == sf::Event::Closed)
             GameManager::GetInstance()->CloseGame();
+
+        else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Tab)
+        {
+            if (Username->HasFocus())
+                Password->GrabFocus();
+            else
+                Username->GrabFocus();
+        }
+        else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return)
+            OnLoginPressed();
     }
     
-    Window->Update(GUIClock.getElapsedTime().asSeconds());
+    auto microseconds = GUIClock.getElapsedTime().asMicroseconds();
+
+    // Only update every 5ms
+    if (microseconds > 5000)
+    {
+        Window->Update(static_cast<float>(microseconds) / 1000000.f);
+        GUIClock.restart();
+    }
 }
 
 void LoginScene::Render() 
@@ -104,7 +122,7 @@ void LoginScene::Render()
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
 
-    if(deleteSceneRequest)
+    if (deleteSceneRequest)
         GameManager::GetInstance()->ChangeScene(GameScene_WaitRoom);
 }
 
@@ -124,10 +142,10 @@ void LoginScene::OnLoginPressed()
             std::strcpy(packet.username, username.c_str());
             std::strcpy(packet.password, password.c_str());
 
-            GM->Network->SendPacket(TCP, packet);
+            GM->Network->SendPacket(packet);
 
             ServerConfirmPacket confirmation;
-            if (GM->Network->ReceivePacket(TCP, confirmation))
+            if (GM->Network->ReceivePacket(confirmation))
             {
                 if (confirmation.accepted)
                 {
@@ -135,6 +153,7 @@ void LoginScene::OnLoginPressed()
                         GM->Network->SetAuthority(true);
 
                     GM->Network->SetClientID(confirmation.id);
+                    GM->Network->SetUsername(username);
                     deleteSceneRequest = true;
                 }
                 else

@@ -40,6 +40,13 @@ struct ClientInfo
 {
     unsigned int id;
     bool authority;
+    std::string username;
+};
+
+struct ChatPacket
+{
+    unsigned int id;
+    char message[70];
 };
 
 class NetworkManager
@@ -52,10 +59,12 @@ public:
     bool Connect(ConnectionType type);
     void Disconnect(ConnectionType type);
 
-    bool SendPacket(ConnectionType type, LogInPacket packet);
+    bool SendPacket(LogInPacket packet);
+    bool SendPacket(ChatPacket packet);
     bool SendPacket(ConnectionType type, GamePacket packet);
 
-    bool ReceivePacket(ConnectionType type, ServerConfirmPacket &packet);
+    bool ReceivePacket(ServerConfirmPacket &packet);
+    bool ReceivePacket(ChatPacket & packet);
 
     /** Gets and sets if the current client is the authority of the game. */
     inline void SetAuthority(bool authority) { client.authority = authority; }
@@ -64,6 +73,8 @@ public:
     /** Gets/Sets the id used by the server to identify this client. */
     inline unsigned int GetClientID() { return client.id; }
     inline void SetClientID(unsigned int id) { client.id = id; }
+    inline std::string GetUsername() { return client.username; }
+    inline void SetUsername(std::string username) { client.username = username; }
 
 private:
     sf::TcpSocket tcpSocket;

@@ -16,7 +16,9 @@ enum InputData
 {
   InputData_LeftPressed,
   InputData_RightPressed,
-  InputData_SpacePressed
+  InputData_SpacePressed,
+  InputData_EnterPressed,
+  InputData_TabPressed
 };
 
 /** Game Manager.
