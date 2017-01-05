@@ -144,18 +144,23 @@ void LoginScene::OnLoginPressed()
 
             GM->Network->SendPacket(packet);
 
-            ServerConfirmPacket confirmation;
-            if (GM->Network->ReceivePacket(confirmation))
+            ConfirmPacket confirmation;
+            char buffer[128];
+            GM->Network->ReceivePacket(TCP, buffer);
+            if (GM->Network->GetPacketFromBytes(buffer, confirmation))
             {
-                if (confirmation.accepted)
+                ConnectionMessage message = NetworkManager::GetConnectionMessage(confirmation.msg);
+                if (message == Connection_Accepted || message == Connection_Accepted_Authority)
                 {
-                    if (confirmation.authority)
+                    if (message == Connection_Accepted_Authority)
                         GM->Network->SetAuthority(true);
 
                     GM->Network->SetClientID(confirmation.id);
                     GM->Network->SetUsername(username);
                     deleteSceneRequest = true;
                 }
+                else if (message == Connection_AlreadyLogged)
+                    LoginError("This user is already logged in the game.");
                 else
                     LoginError("Wrong username or password. Try again.");
             }

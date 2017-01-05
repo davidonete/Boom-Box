@@ -123,6 +123,10 @@ void GameManager::ChangeScene(GameScene scene)
 
 void GameManager::CloseGame()
 {
+    LogOutPacket packet;
+    packet.ID = Network->GetClientID();
+    Network->SendPacket(packet);
+
     Network->Disconnect(TCP);
     Network->Disconnect(UDP);
     Window->close();

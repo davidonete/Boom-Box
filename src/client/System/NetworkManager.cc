@@ -42,7 +42,7 @@ void NetworkManager::Disconnect(ConnectionType type)
 {
     if (type == TCP)
     {
-        tcpSocket.send("", 1);
+        //tcpSocket.send("", 1);
         tcpSocket.disconnect();
     }
     else
@@ -80,6 +80,22 @@ bool NetworkManager::SendPacket(LogInPacket packet)
     return true;
 }
 
+bool NetworkManager::SendPacket(LogOutPacket packet)
+{
+    // Create bytes to send
+    const int size = sizeof(packet);
+    char buffer[size];
+    memcpy(buffer, &packet, size);
+
+    if (tcpSocket.send(buffer, size) != sf::Socket::Done)
+    {
+        std::cout << "Error sending TCP packet...";
+        return false;
+    }
+
+    return true;
+}
+
 bool NetworkManager::SendPacket(ChatPacket packet)
 {
     // Create bytes to send
@@ -96,40 +112,65 @@ bool NetworkManager::SendPacket(ChatPacket packet)
     return true;
 }
 
-bool NetworkManager::ReceivePacket(ServerConfirmPacket &packet)
+bool NetworkManager::ReceivePacket(ConnectionType Type, char* buffer)
 {
     //Prepare buffer to receive
-    const int size = sizeof(ServerConfirmPacket);
-    char buffer[size];
+    const int size = 128;
     std::size_t Received;
 
-    //it is blocking until it receives data (can set the socket to non-blocking)
-    if (tcpSocket.receive(buffer, size, Received) != sf::Socket::Done)
+    if (Type == TCP)
     {
-        std::cout << "Error receiving TCP packet...";
-        return false;
+        //it is blocking until it receives data (can set the socket to non-blocking)
+        if (tcpSocket.receive(buffer, size, Received) != sf::Socket::Done)
+        {
+            std::cout << "Error receiving TCP packet...";
+            return false;
+        }
+        return true;
     }
-
-    memcpy(&packet, buffer, size);
-    return true;
+    else
+    {
+        std::cout << "Error receiving UDP packet...";
+        return nullptr;
+    }
 }
 
-bool NetworkManager::ReceivePacket(ChatPacket &packet)
+static unsigned int GetSizeOfBytes(char bytes[])
 {
-    //Prepare buffer to receive
-    const int size = sizeof(ChatPacket);
-    char buffer[size];
-    std::size_t Received;
-
-    //it is blocking until it receives data (can set the socket to non-blocking)
-    if (tcpSocket.receive(buffer, size, Received) != sf::Socket::Done)
+    int size = 0;
+    while (true)
     {
-        std::cout << "Error receiving TCP packet...";
-        return false;
+        if (bytes[size] == -52) break;
+        size++;
     }
 
-    memcpy(&packet, buffer, size);
-    return true;
+    return size;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], ChatPacket &packet)
+{
+    const unsigned int sizeReceived = GetSizeOfBytes(bytes);
+    const unsigned int sizeToConvert = sizeof(packet);
+
+    if (sizeReceived == sizeToConvert)
+    {
+        memcpy(&packet, bytes, sizeToConvert);
+        return true;
+    }
+    return false;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], ConfirmPacket &packet)
+{
+    const unsigned int sizeReceived = GetSizeOfBytes(bytes);
+    const unsigned int sizeToConvert = sizeof(packet);
+
+    if (sizeReceived == sizeToConvert)
+    {
+        memcpy(&packet, bytes, sizeToConvert);
+        return true;
+    }
+    return false;
 }
 
 //http://www.sfml-dev.org/tutorials/1.6/network-sockets.php

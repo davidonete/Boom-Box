@@ -24,8 +24,9 @@ public:
 
 private:
     void InitGUI();
-    void PrintMessage(std::string message);
     void OnSendPressed();
+    void GetServerPackets();
+    void PrintMessage(std::string message);
 
     sfg::SFGUI GUI;
     sfg::Desktop Desktop;
@@ -40,7 +41,11 @@ private:
     sf::Sprite sprite;
 
     bool deleteSceneRequest = false;
+    bool changeSceneRequest = false;
     std::vector<sfg::Label::Ptr> Messages;
+
+    sf::Mutex mutex;
+    sf::Thread* serverReceiveThread;
 
     //GUI Configuration
     //Chat position % (0 to 1)

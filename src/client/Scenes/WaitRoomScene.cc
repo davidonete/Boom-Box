@@ -31,6 +31,10 @@ void WaitRoomScene::Init()
     bgScale.x = (winSize.x * 0.5f) / 800.0f;
     bgScale.y = (winSize.y * 1.0f) / 600.0f;
     sprite.setScale(bgScale);
+
+    //Receive server packets
+    serverReceiveThread = new sf::Thread(std::bind(&WaitRoomScene::GetServerPackets, this));
+    serverReceiveThread->launch();
 }
 
 void WaitRoomScene::InitGUI()
@@ -52,7 +56,7 @@ void WaitRoomScene::InitGUI()
     scrolledwindow->SetRequisition(ChatSize);
 
     TextBox = sfg::Entry::Create();
-    TextBox->SetMaximumLength(48);
+    TextBox->SetMaximumLength(45);
     TextBox->SetRequisition(sf::Vector2f(100.0f, 20.0f));
 
     sfg::Table::Ptr Table = sfg::Table::Create();
@@ -84,7 +88,7 @@ void WaitRoomScene::Update()
     {
         Desktop.HandleEvent(event);
         if (event.type == sf::Event::Closed)
-            GameManager::GetInstance()->CloseGame();
+            deleteSceneRequest = true;
         else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return)
             OnSendPressed();
     }
@@ -104,23 +108,14 @@ void WaitRoomScene::Render()
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
 
-    if (deleteSceneRequest)
-        GameManager::GetInstance()->ChangeScene(GameScene_Battle);
-}
-
-void WaitRoomScene::PrintMessage(std::string message)
-{
-    if (Messages.size() == MaxChatMessages)
+    if (deleteSceneRequest || changeSceneRequest)
     {
-        ScrolledWindowBox->Remove(Messages[0]);
-        Messages.erase(Messages.begin());
+        //serverReceiveThread->wait();
+        if(deleteSceneRequest)
+            GameManager::GetInstance()->CloseGame();
+        else if(changeSceneRequest)
+            GameManager::GetInstance()->ChangeScene(GameScene_Battle);
     }
-
-    sfg::Label::Ptr a = sfg::Label::Create(message);
-    a->SetAlignment(sf::Vector2f(0.0f, 0.0f));
-
-    Messages.push_back(a);
-    ScrolledWindowBox->Pack(Messages[Messages.size() - 1]);
 }
 
 void WaitRoomScene::OnSendPressed() 
@@ -136,18 +131,43 @@ void WaitRoomScene::OnSendPressed()
         std::stringstream buffer;
         buffer << "[" << username << "]: " << text;
 
-        PrintMessage(buffer.str());
+        //PrintMessage(buffer.str());
 
         ChatPacket packet;
         packet.id = GM->Network->GetClientID();
         std::strcpy(packet.message, buffer.str().c_str());
         GM->Network->SendPacket(packet);
-
-        //This has to be handled by a thread (if not is blocking)
-        ChatPacket packetReceived;
-        if (GM->Network->ReceivePacket(packetReceived))
-        {
-            PrintMessage(packetReceived.message);
-        }
     }
+}
+
+void WaitRoomScene::GetServerPackets()
+{
+    NetworkManager* Network = GameManager::GetInstance()->Network;
+    while (!deleteSceneRequest && !changeSceneRequest)
+    {
+        ChatPacket packet;
+        char buffer[128];
+        Network->ReceivePacket(TCP, buffer);
+        if (Network->GetPacketFromBytes(buffer, packet))
+            PrintMessage(packet.message);
+
+        sf::sleep(sf::milliseconds(16));
+    }
+}
+
+void WaitRoomScene::PrintMessage(std::string message)
+{
+    mutex.lock();
+    if (Messages.size() == MaxChatMessages)
+    {
+        ScrolledWindowBox->Remove(Messages[0]);
+        Messages.erase(Messages.begin());
+    }
+
+    sfg::Label::Ptr a = sfg::Label::Create(message);
+    a->SetAlignment(sf::Vector2f(0.0f, 0.0f));
+
+    Messages.push_back(a);
+    ScrolledWindowBox->Pack(Messages[Messages.size() - 1]);
+    mutex.unlock();
 }

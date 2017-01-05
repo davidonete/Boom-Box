@@ -34,14 +34,11 @@ public struct ClientGamePacket
     public float x, y;
 };
 
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
+[StructLayout(LayoutKind.Sequential)]
 public struct ServerConfirmationPacket
 {
     public uint ID;
-    [MarshalAs(UnmanagedType.I1)]
-    public bool accepted;
-    [MarshalAs(UnmanagedType.I1)]
-    public bool authority;
+    public uint msg;
 };
 
 [StructLayout(LayoutKind.Sequential)]
@@ -54,10 +51,16 @@ public struct ClientLogInPacket
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public struct ClientLogOutPacket
+{
+    public uint ID;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public struct ClientChatPacket
 {
     public uint ID;
-    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 58)]
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 52)]
     public string message;
 }
 
@@ -74,10 +77,17 @@ public enum ServerState
     Battle
 }
 
+public enum ServerMessage
+{
+    Connection_Refused,
+    Connection_Accepted,
+    Connection_Accepted_Authority,
+    Connection_AlreadyLogged,
+}
+
 public class Server
 {
     public static ServerState serverState = ServerState.WaitRoom;
-    public static uint numPlayers = 0;
     public static List<PlayerInfo> players;
 
     // Thread signal.
@@ -143,6 +153,19 @@ public class Server
         IntPtr ptr = Marshal.AllocHGlobal(size);
         Marshal.Copy(buffer, 0, ptr, size);
         packet = (ClientLogInPacket)Marshal.PtrToStructure(ptr, packet.GetType());
+        Marshal.FreeHGlobal(ptr);
+
+        return packet;
+    }
+
+    static ClientLogOutPacket GetLogOutPacketFromBytes(byte[] buffer)
+    {
+        ClientLogOutPacket packet = new ClientLogOutPacket();
+
+        int size = Marshal.SizeOf(packet);
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientLogOutPacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -232,18 +255,32 @@ public class Server
         // from the asynchronous state object.
         StateObject state = (StateObject)ar.AsyncState;
         Socket handler = state.workSocket;
+        int bytesRead = 0;
 
-        // Read data from the client socket. 
-        int bytesRead = handler.EndReceive(ar);
+        try
+        {
+            // Read data from the client socket. 
+            bytesRead = handler.EndReceive(ar);
+
+        }
+        catch (Exception e)
+        {
+            //This will be called when the client closes the application
+            handler.Close();
+        }
 
         if (bytesRead > 0)
         {
+            Console.WriteLine("Received {0} bytes from {1}:{2}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
             if (serverState == ServerState.WaitRoom)
             {
                 //If the packet is a LogInPacket
                 int LoginPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogInPacket));
+                int LogOutPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogOutPacket));
                 if (bytesRead == LoginPacketSize)
                     LogInHandler(state, handler);
+                else if (bytesRead == LogOutPacketSize)
+                    LogOutHandler(state, handler);
                 else
                     MessageHandler(state, handler);
             }
@@ -272,10 +309,6 @@ public class Server
             }
             */
         }
-        else
-        {
-            Console.WriteLine("Nothing received");
-        }
     }
 
     public static void MessageHandler(StateObject state, Socket handler)
@@ -284,10 +317,7 @@ public class Server
 
         //Broadcast the message to the rest of the players
         for(int i = 0; i < players.Count; i++)
-        {
-            if(players[i].ID != dataReceived.ID)
-                Send(players[i].handler, GetBytesFromPacket(dataReceived));
-        }
+            Send(players[i].handler,  GetBytesFromPacket(dataReceived));
     }
 
     public static void LogInHandler(StateObject state, Socket handler)
@@ -306,8 +336,7 @@ public class Server
 
         ServerConfirmationPacket packet;
         packet.ID = 0;
-        packet.accepted = false;
-        packet.authority = false;
+        packet.msg = 0;
 
         if (reader.HasRows)
         {
@@ -316,34 +345,36 @@ public class Server
                 //Check if the username & password are correct
                 if ((string)reader["USERNAME"] == dataReceived.username && (string)reader["PASSWORD"] == dataReceived.password)
                 {
-                    //Check if that user has already logged in
                     uint id = Convert.ToUInt32(reader["ID"]);
-                    bool playerAlreadyLogged = false;
-
+                    //Check if that user has already logged in
                     if (players.Count > 0)
                     {
                         for (int i = 0; i < players.Count; i++)
                         {
                             if (players[i].ID == id)
                             {
-                                playerAlreadyLogged = true;
+                                packet.msg = (uint)ServerMessage.Connection_AlreadyLogged;
                                 break;
                             }
                         }
                     }
 
-                    if (!playerAlreadyLogged)
+                    if (packet.msg != 3)
                     {
-                        if (players.Count < 1)
-                            packet.authority = true;
-
-                        packet.ID = id;
-                        packet.accepted = true;
-
                         PlayerInfo newPlayer;
                         newPlayer.ID = id;
                         newPlayer.handler = handler;
-                        newPlayer.authority = packet.authority;
+                        newPlayer.authority = false;
+
+                        packet.ID = id;
+                        packet.msg = (uint)ServerMessage.Connection_Accepted;
+
+                        if (players.Count < 1)
+                        {
+                            packet.msg = (uint)ServerMessage.Connection_Accepted_Authority;
+                            newPlayer.authority = true;
+                        }
+
                         players.Add(newPlayer);
                     }
                     break;
@@ -352,6 +383,22 @@ public class Server
         }
         db_connection.Close();
         Send(handler, GetBytesFromPacket(packet));
+    }
+
+    public static void LogOutHandler(StateObject state, Socket handler)
+    {
+        ClientLogOutPacket dataReceived = GetLogOutPacketFromBytes(state.buffer);
+
+        for(int i = 0; i < players.Count; i++)
+        {
+            if(players[i].ID == dataReceived.ID)
+            {
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+                players.Remove(players[i]);
+                break;
+            }
+        }
     }
 
     private static void Send(Socket handler, String data)

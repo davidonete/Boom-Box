@@ -17,10 +17,23 @@ enum ConnectionType
     UDP
 };
 
+enum ConnectionMessage
+{
+    Connection_Refused,
+    Connection_Accepted,
+    Connection_Accepted_Authority,
+    Connection_AlreadyLogged,
+};
+
 struct LogInPacket
 {
     char username[32];
     char password[32];
+};
+
+struct LogOutPacket
+{
+    unsigned int ID;
 };
 
 struct GamePacket
@@ -29,11 +42,10 @@ struct GamePacket
     float x, y;
 };
 
-struct ServerConfirmPacket
+struct ConfirmPacket
 {
     unsigned int id;
-    bool accepted;
-    bool authority;
+    unsigned int msg;
 };
 
 struct ClientInfo
@@ -46,7 +58,7 @@ struct ClientInfo
 struct ChatPacket
 {
     unsigned int id;
-    char message[70];
+    char message[50];
 };
 
 class NetworkManager
@@ -60,11 +72,15 @@ public:
     void Disconnect(ConnectionType type);
 
     bool SendPacket(LogInPacket packet);
+    bool SendPacket(LogOutPacket packet);
     bool SendPacket(ChatPacket packet);
     bool SendPacket(ConnectionType type, GamePacket packet);
 
-    bool ReceivePacket(ServerConfirmPacket &packet);
-    bool ReceivePacket(ChatPacket & packet);
+    bool ReceivePacket(ConnectionType Type, char* buffer);
+    bool GetPacketFromBytes(char bytes[], ChatPacket &packet);
+    bool GetPacketFromBytes(char bytes[], ConfirmPacket &packet);
+
+    static inline ConnectionMessage GetConnectionMessage(unsigned int code) { return static_cast<ConnectionMessage>(code); }
 
     /** Gets and sets if the current client is the authority of the game. */
     inline void SetAuthority(bool authority) { client.authority = authority; }
