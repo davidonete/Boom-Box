@@ -42,6 +42,12 @@ public struct ServerConfirmationPacket
 };
 
 [StructLayout(LayoutKind.Sequential)]
+public struct ServerMessagePacket
+{
+    public uint msg;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public struct ClientLogInPacket
 {
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
@@ -64,10 +70,28 @@ public struct ClientChatPacket
     public string message;
 }
 
+[StructLayout(LayoutKind.Sequential)]
+public struct ClientRequestPacket
+{
+    public uint ID;
+    public uint request;
+}
+
+[StructLayout(LayoutKind.Sequential)]
+public struct PlayerInfoPacket
+{
+    public uint ID;
+    public uint winCount;
+    [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+    public string username;
+}
+
 public struct PlayerInfo
 {
     public uint ID;
+    public uint winCount;
     public bool authority;
+    public string username;
     public Socket handler;
 }
 
@@ -79,10 +103,23 @@ public enum ServerState
 
 public enum ServerMessage
 {
-    Connection_Refused,
-    Connection_Accepted,
-    Connection_Accepted_Authority,
-    Connection_AlreadyLogged,
+    Server_Refused,
+    Server_Accepted,
+    Server_AcceptedAuthority,
+    Server_AlreadyLogged,
+    Server_PlayerConnected,
+    Server_PlayerDisconnected,
+}
+
+public enum ClientRequest
+{
+    GetPlayersInfo,
+}
+
+public enum ConnectionType
+{
+    TCP,
+    UDP,
 }
 
 public class Server
@@ -121,6 +158,30 @@ public class Server
     }
 
     static byte[] GetBytesFromPacket(ClientChatPacket packet)
+    {
+        int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
+        byte[] bytes = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(packet, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);
+        return bytes;
+    }
+
+    static byte[] GetBytesFromPacket(PlayerInfoPacket packet)
+    {
+        int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
+        byte[] bytes = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(packet, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);
+        return bytes;
+    }
+
+    static byte[] GetBytesFromPacket(ServerMessagePacket packet)
     {
         int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
         byte[] bytes = new byte[size];
@@ -179,6 +240,19 @@ public class Server
         IntPtr ptr = Marshal.AllocHGlobal(size);
         Marshal.Copy(buffer, 0, ptr, size);
         packet = (ClientChatPacket)Marshal.PtrToStructure(ptr, packet.GetType());
+        Marshal.FreeHGlobal(ptr);
+
+        return packet;
+    }
+
+    static ClientRequestPacket GetRequestPacketFromBytes(byte[] buffer)
+    {
+        ClientRequestPacket packet = new ClientRequestPacket();
+
+        int size = Marshal.SizeOf(packet);
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientRequestPacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -257,32 +331,28 @@ public class Server
         Socket handler = state.workSocket;
         int bytesRead = 0;
 
-        try
-        {
-            // Read data from the client socket. 
-            bytesRead = handler.EndReceive(ar);
-
-        }
-        catch (Exception e)
-        {
-            //This will be called when the client closes the application
-            handler.Close();
-        }
+        // Read data from the client socket. 
+        try { bytesRead = handler.EndReceive(ar); }
+        //This will be called when a client closes the application
+        catch (Exception e) { handler.Close(); }
 
         if (bytesRead > 0)
         {
-            Console.WriteLine("Received {0} bytes from {1}:{2}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+            //Console.WriteLine("Received {0} bytes from {1}:{2}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
             if (serverState == ServerState.WaitRoom)
             {
                 //If the packet is a LogInPacket
                 int LoginPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogInPacket));
                 int LogOutPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogOutPacket));
+                int ChatPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientChatPacket));
                 if (bytesRead == LoginPacketSize)
                     LogInHandler(state, handler);
                 else if (bytesRead == LogOutPacketSize)
                     LogOutHandler(state, handler);
+                else if (bytesRead == ChatPacketSize)
+                    ChatHandler(state, handler);
                 else
-                    MessageHandler(state, handler);
+                    RequestHandler(state, handler);
             }
             /*
             // There  might be more data, so store the data received so far.
@@ -311,17 +381,57 @@ public class Server
         }
     }
 
-    public static void MessageHandler(StateObject state, Socket handler)
+    public static void RequestHandler(StateObject state, Socket handler)
     {
+        ClientRequestPacket dataReceived = GetRequestPacketFromBytes(state.buffer);
+
+        if (!CheckPlayerLogged(dataReceived.ID))
+            return;
+
+        ClientRequest request = (ClientRequest)dataReceived.request;
+        if(request == ClientRequest.GetPlayersInfo)
+        {
+            Console.WriteLine("Received GetPlayerInfo Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+            PlayerInfoPacket lastPacket;
+            lastPacket.ID = 0;
+            lastPacket.winCount = 0;
+            lastPacket.username = "";
+
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (players[i].ID == dataReceived.ID)
+                {
+                    lastPacket.ID = players[i].ID;
+                    lastPacket.winCount = players[i].winCount;
+                    lastPacket.username = players[i].username;
+                }
+                else
+                {
+                    PlayerInfoPacket packet;
+                    packet.ID = players[i].ID;
+                    packet.winCount = players[i].winCount;
+                    packet.username = players[i].username;
+                    Send(handler, GetBytesFromPacket(packet));
+                }
+            }
+
+            Send(handler, GetBytesFromPacket(lastPacket));
+        }
+    }
+
+    public static void ChatHandler(StateObject state, Socket handler)
+    {
+        Console.WriteLine("Received Chat Message from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
         ClientChatPacket dataReceived = GetChatPacketFromBytes(state.buffer);
 
         //Broadcast the message to the rest of the players
-        for(int i = 0; i < players.Count; i++)
-            Send(players[i].handler,  GetBytesFromPacket(dataReceived));
+        Broadcast(ConnectionType.TCP, GetBytesFromPacket(dataReceived));
     }
 
     public static void LogInHandler(StateObject state, Socket handler)
     {
+        Console.WriteLine("Received Log In Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+
         ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
         //Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
 
@@ -353,27 +463,34 @@ public class Server
                         {
                             if (players[i].ID == id)
                             {
-                                packet.msg = (uint)ServerMessage.Connection_AlreadyLogged;
+                                packet.msg = (uint)ServerMessage.Server_AlreadyLogged;
                                 break;
                             }
                         }
                     }
 
-                    if (packet.msg != 3)
+                    if (packet.msg != (uint)ServerMessage.Server_AlreadyLogged)
                     {
                         PlayerInfo newPlayer;
                         newPlayer.ID = id;
                         newPlayer.handler = handler;
                         newPlayer.authority = false;
+                        newPlayer.username = dataReceived.username;
+                        newPlayer.winCount = Convert.ToUInt32(reader["WINCOUNT"]);
 
                         packet.ID = id;
-                        packet.msg = (uint)ServerMessage.Connection_Accepted;
+                        packet.msg = (uint)ServerMessage.Server_Accepted;
 
                         if (players.Count < 1)
                         {
-                            packet.msg = (uint)ServerMessage.Connection_Accepted_Authority;
+                            packet.msg = (uint)ServerMessage.Server_AcceptedAuthority;
                             newPlayer.authority = true;
                         }
+
+                        //Broadcast the message to the rest of the players
+                        ServerMessagePacket broadcastPacket;
+                        broadcastPacket.msg = (uint)ServerMessage.Server_PlayerConnected;
+                        Broadcast(ConnectionType.TCP, GetBytesFromPacket(broadcastPacket));
 
                         players.Add(newPlayer);
                     }
@@ -387,17 +504,65 @@ public class Server
 
     public static void LogOutHandler(StateObject state, Socket handler)
     {
+        Console.WriteLine("Received Log Out Message. Players: {0}", players.Count - 1);
+
         ClientLogOutPacket dataReceived = GetLogOutPacketFromBytes(state.buffer);
 
         for(int i = 0; i < players.Count; i++)
         {
             if(players[i].ID == dataReceived.ID)
             {
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
+                if (players[i].authority && players.Count > 1)
+                {
+                    //Change the authority to an other player
+                    PlayerInfo modifiedPlayer;
+                    modifiedPlayer.ID = players[i + 1].ID;
+                    modifiedPlayer.username = players[i + 1].username;
+                    modifiedPlayer.handler = players[i + 1].handler;
+                    modifiedPlayer.winCount = players[i + 1].winCount;
+                    modifiedPlayer.authority = true;
+
+                    players[i + 1] = modifiedPlayer; 
+                }
+
+                try
+                {
+                    handler.Shutdown(SocketShutdown.Both);
+                    handler.Close();
+                }
+                catch (Exception e) {}
                 players.Remove(players[i]);
+
+                //Broadcast the message to the rest of the players
+                ServerMessagePacket packet;
+                packet.msg = (uint)ServerMessage.Server_PlayerDisconnected;
+                Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+
                 break;
             }
+        }
+    }
+
+    public static bool CheckPlayerLogged(uint ID)
+    {
+        for(int i = 0; i < players.Count; i++)
+        {
+            if (players[i].ID == ID)
+                return true;
+        }
+        return false;
+    }
+
+    public static void Broadcast(ConnectionType type, byte[] data)
+    {
+        if(type == ConnectionType.TCP)
+        {
+            for (int i = 0; i < players.Count; i++)
+                Send(players[i].handler, data);
+        }
+        else
+        {
+
         }
     }
 

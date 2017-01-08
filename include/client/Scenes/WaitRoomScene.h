@@ -23,6 +23,9 @@ public:
     void Render() override;
 
 private:
+    void UpdateRoomInfo();
+    void AddPlayerInfo(char * username, unsigned int wincount, unsigned int row);
+
     void InitGUI();
     void OnSendPressed();
     void GetServerPackets();
@@ -32,7 +35,9 @@ private:
     sfg::Desktop Desktop;
 
     sfg::Entry::Ptr TextBox;
-    sfg::Box::Ptr ScrolledWindowBox;
+    sfg::Box::Ptr ChatWindowBox;
+    sfg::Table::Ptr UsersWindowBox;
+    sfg::Label::Ptr UserText;
 
     sf::RenderWindow* RenderWindow;
     sf::Clock GUIClock;
@@ -50,12 +55,19 @@ private:
     //GUI Configuration
     //Chat position % (0 to 1)
     float ChatPosX = 0.5f;
-    float ChatPosY = 0.5f;
+    float ChatPosY = 0.8f;
     //Chat size % (0 to 1)
     float ChatSizeX = 1.0f;
     float ChatSizeY = 1.0f;
     //Max chat messages showed
     int MaxChatMessages = 10;
+
+    //Chat position % (0 to 1)
+    float UserPosX = 0.5f;
+    float UserPosY = 0.3f;
+    //User window size % (0 to 1)
+    float UserSizeX = 1.0f;
+    float UserSizeY = 1.0f;
 };
 
 #endif

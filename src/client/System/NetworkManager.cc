@@ -41,10 +41,7 @@ bool NetworkManager::Connect(ConnectionType type)
 void NetworkManager::Disconnect(ConnectionType type)
 {
     if (type == TCP)
-    {
-        //tcpSocket.send("", 1);
         tcpSocket.disconnect();
-    }
     else
         udpSocket.unbind();
 }
@@ -56,6 +53,29 @@ bool NetworkManager::SendPacket(ConnectionType type, GamePacket packet)
     {
         std::cout << "Error sending TCP packet...";
         return false;
+    }
+    else
+    {
+        std::cout << "Error sending UDP packet...";
+        return false;
+    }
+}
+
+bool NetworkManager::SendPacket(ConnectionType type, ClientRequestPacket packet)
+{
+    // Create bytes to send
+    const int size = sizeof(packet);
+    char buffer[size];
+    memcpy(buffer, &packet, size);
+
+    if (type == TCP)
+    {
+        if (tcpSocket.send(buffer, size) != sf::Socket::Done)
+        {
+            std::cout << "Error sending TCP packet...";
+            return false;
+        }
+        return true;
     }
     else
     {
@@ -131,11 +151,11 @@ bool NetworkManager::ReceivePacket(ConnectionType Type, char* buffer)
     else
     {
         std::cout << "Error receiving UDP packet...";
-        return nullptr;
+        return false;
     }
 }
 
-static unsigned int GetSizeOfBytes(char bytes[])
+unsigned int NetworkManager::GetSizeOfBytes(char bytes[])
 {
     int size = 0;
     while (true)
@@ -147,27 +167,59 @@ static unsigned int GetSizeOfBytes(char bytes[])
     return size;
 }
 
-bool NetworkManager::GetPacketFromBytes(char bytes[], ChatPacket &packet)
+PacketType NetworkManager::GetPacketType(char bytes[])
 {
-    const unsigned int sizeReceived = GetSizeOfBytes(bytes);
-    const unsigned int sizeToConvert = sizeof(packet);
-
-    if (sizeReceived == sizeToConvert)
+    switch (GetSizeOfBytes(bytes))
     {
-        memcpy(&packet, bytes, sizeToConvert);
+        case sizeof(GamePacket) :
+            return Type_GamePacket;
+        case sizeof(ChatPacket) :
+            return Type_ChatPacket;
+        case sizeof(PlayerInfoPacket) :
+            return Type_PlayerInfoPacket;
+        case sizeof(ServerMessagePacket) :
+            return Type_ServerMessagePacket;
+        case sizeof(ClientRequestPacket) :
+            return Type_ClientRequestPacket;
+    }
+    return Type_Null;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet)
+{
+    if(GetPacketType(bytes) == Type_PlayerInfoPacket)
+    {
+        memcpy(&packet, bytes, sizeof(packet));
         return true;
     }
     return false;
 }
 
-bool NetworkManager::GetPacketFromBytes(char bytes[], ConfirmPacket &packet)
+bool NetworkManager::GetPacketFromBytes(char bytes[], ChatPacket &packet)
 {
-    const unsigned int sizeReceived = GetSizeOfBytes(bytes);
-    const unsigned int sizeToConvert = sizeof(packet);
-
-    if (sizeReceived == sizeToConvert)
+    if (GetPacketType(bytes) == Type_ChatPacket)
     {
-        memcpy(&packet, bytes, sizeToConvert);
+        memcpy(&packet, bytes, sizeof(packet));
+        return true;
+    }
+    return false;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], ServerMessagePacket &packet)
+{
+    if (GetPacketType(bytes) == Type_ServerMessagePacket)
+    {
+        memcpy(&packet, bytes, sizeof(packet));
+        return true;
+    }
+    return false;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], ClientRequestPacket &packet)
+{
+    if (GetPacketType(bytes) == Type_ClientRequestPacket)
+    {
+        memcpy(&packet, bytes, sizeof(packet));
         return true;
     }
     return false;

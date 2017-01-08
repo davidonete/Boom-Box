@@ -17,12 +17,29 @@ enum ConnectionType
     UDP
 };
 
-enum ConnectionMessage
+enum ServerMessage
 {
-    Connection_Refused,
-    Connection_Accepted,
-    Connection_Accepted_Authority,
-    Connection_AlreadyLogged,
+    Server_Refused,
+    Server_Accepted,
+    Server_AcceptedAuthority,
+    Server_AlreadyLogged,
+    Server_PlayerConnected,
+    Server_PlayerDisconnected,
+};
+
+enum RequestMessage
+{
+    Request_GetPlayersInfo,
+};
+
+enum PacketType
+{
+    Type_Null,
+    Type_GamePacket,
+    Type_ChatPacket,
+    Type_ServerMessagePacket,
+    Type_PlayerInfoPacket,
+    Type_ClientRequestPacket,
 };
 
 struct LogInPacket
@@ -42,23 +59,36 @@ struct GamePacket
     float x, y;
 };
 
-struct ConfirmPacket
+struct PlayerInfoPacket
 {
     unsigned int id;
-    unsigned int msg;
-};
-
-struct ClientInfo
-{
-    unsigned int id;
-    bool authority;
-    std::string username;
+    unsigned int wincount;
+    char username[32];
 };
 
 struct ChatPacket
 {
     unsigned int id;
     char message[50];
+};
+
+struct ServerMessagePacket
+{
+    unsigned int msg;
+};
+
+struct ClientRequestPacket
+{
+    unsigned int ID;
+    unsigned int msg;
+};
+
+struct PlayerInformation
+{
+    unsigned int id;
+    unsigned int wincount;
+    bool authority;
+    std::string username;
 };
 
 class NetworkManager
@@ -75,12 +105,18 @@ public:
     bool SendPacket(LogOutPacket packet);
     bool SendPacket(ChatPacket packet);
     bool SendPacket(ConnectionType type, GamePacket packet);
+    bool SendPacket(ConnectionType type, ClientRequestPacket packet);
 
     bool ReceivePacket(ConnectionType Type, char* buffer);
     bool GetPacketFromBytes(char bytes[], ChatPacket &packet);
-    bool GetPacketFromBytes(char bytes[], ConfirmPacket &packet);
+    bool GetPacketFromBytes(char bytes[], ServerMessagePacket &packet);
+    bool GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
+    bool GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet);
 
-    static inline ConnectionMessage GetConnectionMessage(unsigned int code) { return static_cast<ConnectionMessage>(code); }
+    static PacketType GetPacketType(char bytes[]);
+
+    static inline ServerMessage GetServerMessage(unsigned int code) { return static_cast<ServerMessage>(code); }
+    static inline unsigned int GetCodeFromMessage(RequestMessage msg) { return static_cast<unsigned int>(msg); }
 
     /** Gets and sets if the current client is the authority of the game. */
     inline void SetAuthority(bool authority) { client.authority = authority; }
@@ -92,11 +128,13 @@ public:
     inline std::string GetUsername() { return client.username; }
     inline void SetUsername(std::string username) { client.username = username; }
 
+    static unsigned int GetSizeOfBytes(char bytes[]);
+
 private:
     sf::TcpSocket tcpSocket;
     sf::UdpSocket udpSocket;
 
-    ClientInfo client;
+    PlayerInformation client;
 };
 
 #endif
