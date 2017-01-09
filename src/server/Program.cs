@@ -57,12 +57,6 @@ public struct ClientLogInPacket
 }
 
 [StructLayout(LayoutKind.Sequential)]
-public struct ClientLogOutPacket
-{
-    public uint ID;
-}
-
-[StructLayout(LayoutKind.Sequential)]
 public struct ClientChatPacket
 {
     public uint ID;
@@ -109,11 +103,14 @@ public enum ServerMessage
     Server_AlreadyLogged,
     Server_PlayerConnected,
     Server_PlayerDisconnected,
+    Server_StartBattle,
 }
 
 public enum ClientRequest
 {
-    GetPlayersInfo,
+    Request_GetPlayersInfo,
+    Request_DisconnectPlayer,
+    Request_StartBattle,
 }
 
 public enum ConnectionType
@@ -214,19 +211,6 @@ public class Server
         IntPtr ptr = Marshal.AllocHGlobal(size);
         Marshal.Copy(buffer, 0, ptr, size);
         packet = (ClientLogInPacket)Marshal.PtrToStructure(ptr, packet.GetType());
-        Marshal.FreeHGlobal(ptr);
-
-        return packet;
-    }
-
-    static ClientLogOutPacket GetLogOutPacketFromBytes(byte[] buffer)
-    {
-        ClientLogOutPacket packet = new ClientLogOutPacket();
-
-        int size = Marshal.SizeOf(packet);
-        IntPtr ptr = Marshal.AllocHGlobal(size);
-        Marshal.Copy(buffer, 0, ptr, size);
-        packet = (ClientLogOutPacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -343,17 +327,22 @@ public class Server
             {
                 //If the packet is a LogInPacket
                 int LoginPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogInPacket));
-                int LogOutPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientLogOutPacket));
                 int ChatPacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientChatPacket));
                 if (bytesRead == LoginPacketSize)
                     LogInHandler(state, handler);
-                else if (bytesRead == LogOutPacketSize)
-                    LogOutHandler(state, handler);
                 else if (bytesRead == ChatPacketSize)
                     ChatHandler(state, handler);
                 else
                     RequestHandler(state, handler);
             }
+            else if (serverState == ServerState.Battle)
+            {
+                //Refuse all incoming TCP messages and requests from clients
+                ServerMessagePacket packet;
+                packet.msg = (uint)ServerMessage.Server_Refused;
+                Send(handler, GetBytesFromPacket(packet));
+            }
+
             /*
             // There  might be more data, so store the data received so far.
             state.sb.Append(Encoding.ASCII.GetString(
@@ -389,39 +378,17 @@ public class Server
             return;
 
         ClientRequest request = (ClientRequest)dataReceived.request;
-        if(request == ClientRequest.GetPlayersInfo)
-        {
-            Console.WriteLine("Received GetPlayerInfo Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
-            PlayerInfoPacket lastPacket;
-            lastPacket.ID = 0;
-            lastPacket.winCount = 0;
-            lastPacket.username = "";
-
-            for (int i = 0; i < players.Count; i++)
-            {
-                if (players[i].ID == dataReceived.ID)
-                {
-                    lastPacket.ID = players[i].ID;
-                    lastPacket.winCount = players[i].winCount;
-                    lastPacket.username = players[i].username;
-                }
-                else
-                {
-                    PlayerInfoPacket packet;
-                    packet.ID = players[i].ID;
-                    packet.winCount = players[i].winCount;
-                    packet.username = players[i].username;
-                    Send(handler, GetBytesFromPacket(packet));
-                }
-            }
-
-            Send(handler, GetBytesFromPacket(lastPacket));
-        }
+        if (request == ClientRequest.Request_GetPlayersInfo)
+            GetPlayersInfoHandler(handler, dataReceived.ID);
+        else if (request == ClientRequest.Request_DisconnectPlayer)
+            LogOutHandler(handler, dataReceived.ID);
+        else if (request == ClientRequest.Request_StartBattle)
+            StartBattleHandler(handler, dataReceived.ID);
     }
 
     public static void ChatHandler(StateObject state, Socket handler)
     {
-        Console.WriteLine("Received Chat Message from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+        Console.WriteLine("Received 'Chat' Message from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
         ClientChatPacket dataReceived = GetChatPacketFromBytes(state.buffer);
 
         //Broadcast the message to the rest of the players
@@ -430,7 +397,7 @@ public class Server
 
     public static void LogInHandler(StateObject state, Socket handler)
     {
-        Console.WriteLine("Received Log In Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+        Console.WriteLine("Received 'Log In' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
 
         ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
         //Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
@@ -502,15 +469,13 @@ public class Server
         Send(handler, GetBytesFromPacket(packet));
     }
 
-    public static void LogOutHandler(StateObject state, Socket handler)
+    public static void LogOutHandler(Socket handler, uint ID)
     {
-        Console.WriteLine("Received Log Out Message. Players: {0}", players.Count - 1);
-
-        ClientLogOutPacket dataReceived = GetLogOutPacketFromBytes(state.buffer);
+        Console.WriteLine("Received 'Log Out' Message. Players: {0}", players.Count - 1);
 
         for(int i = 0; i < players.Count; i++)
         {
-            if(players[i].ID == dataReceived.ID)
+            if(players[i].ID == ID)
             {
                 if (players[i].authority && players.Count > 1)
                 {
@@ -543,11 +508,67 @@ public class Server
         }
     }
 
+    public static void GetPlayersInfoHandler(Socket handler, uint ID)
+    {
+        Console.WriteLine("Received 'Get Player Info' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+        PlayerInfoPacket lastPacket;
+        lastPacket.ID = 0;
+        lastPacket.winCount = 0;
+        lastPacket.username = "";
+
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].ID == ID)
+            {
+                lastPacket.ID = players[i].ID;
+                lastPacket.winCount = players[i].winCount;
+                lastPacket.username = players[i].username;
+            }
+            else
+            {
+                PlayerInfoPacket packet;
+                packet.ID = players[i].ID;
+                packet.winCount = players[i].winCount;
+                packet.username = players[i].username;
+                Send(handler, GetBytesFromPacket(packet));
+            }
+        }
+
+        Send(handler, GetBytesFromPacket(lastPacket));
+    }
+    
+    public static void StartBattleHandler(Socket handler, uint ID)
+    {
+        Console.WriteLine("Received 'Start Battle' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+        ServerMessagePacket packet;
+        if (CheckPlayerAuthority(ID) && players.Count > 0)
+        {
+            packet.msg = (uint)ServerMessage.Server_StartBattle;
+            Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+            serverState = ServerState.Battle;
+        }
+        else
+        {
+            packet.msg = (uint)ServerMessage.Server_Refused;
+            Send(handler, GetBytesFromPacket(packet));
+        }
+    }
+
     public static bool CheckPlayerLogged(uint ID)
     {
         for(int i = 0; i < players.Count; i++)
         {
             if (players[i].ID == ID)
+                return true;
+        }
+        return false;
+    }
+
+    public static bool CheckPlayerAuthority(uint ID)
+    {
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].ID == ID && players[i].authority)
                 return true;
         }
         return false;

@@ -93,10 +93,25 @@ void WaitRoomScene::InitGUI()
     UserText = sfg::Label::Create();
     UserText->SetText(text.str());
     UserText->SetAlignment(sf::Vector2f(0.0f, 0.0f));
+    
+    sfg::Button::Ptr StartGame = sfg::Button::Create("Start Game");
+    StartGame->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+    StartGame->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnStartGamePressed, this));
+
+    sfg::Button::Ptr LogOut = sfg::Button::Create("Log Out");
+    LogOut->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+    LogOut->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnLogOutPressed, this));
+
+    sfg::Table::Ptr Table2 = sfg::Table::Create();
+    Table2->Attach(StartGame, sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table2->Attach(LogOut, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table2->SetRowSpacings(5.f);
+    Table2->SetColumnSpacings(5.f);
 
     auto box2 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 10.f);
     box2->Pack(UserText);
     box2->Pack(userscrolledwindow, false, true);
+    box2->Pack(Table2, true, false);
 
     UserWindow->Add(box2);
 
@@ -139,13 +154,14 @@ void WaitRoomScene::Render()
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
 
-    if (deleteSceneRequest || changeSceneRequest)
+    if (deleteSceneRequest || changeNextSceneRequest || changePreviousSceneRequest)
     {
-        //serverReceiveThread->wait();
-        if(deleteSceneRequest)
+        if (deleteSceneRequest)
             GameManager::GetInstance()->CloseGame();
-        else if(changeSceneRequest)
+        else if (changeNextSceneRequest)
             GameManager::GetInstance()->ChangeScene(GameScene_Battle);
+        else if (changePreviousSceneRequest)
+            GameManager::GetInstance()->ChangeScene(GameScene_LogIn);
     }
 }
 
@@ -162,8 +178,6 @@ void WaitRoomScene::OnSendPressed()
         std::stringstream buffer;
         buffer << "[" << username << "]: " << text;
 
-        //PrintMessage(buffer.str());
-
         ChatPacket packet;
         packet.id = GM->Network->GetClientID();
         std::strcpy(packet.message, buffer.str().c_str());
@@ -171,12 +185,32 @@ void WaitRoomScene::OnSendPressed()
     }
 }
 
+void WaitRoomScene::OnLogOutPressed()
+{
+    serverReceiveThread->terminate();
+    GameManager::GetInstance()->Network->LogOut();
+    GameManager::GetInstance()->Network->Disconnect(TCP);
+    changePreviousSceneRequest = true;
+}
+
+void WaitRoomScene::OnStartGamePressed()
+{
+    NetworkManager* Network = GameManager::GetInstance()->Network;
+
+    ClientRequestPacket packet;
+    packet.ID = Network->GetClientID();
+    packet.msg = Network->GetCodeFromMessage(Request_StartBattle);
+
+    Network->SendPacket(TCP, packet);
+}
+
 void WaitRoomScene::GetServerPackets()
 {
     NetworkManager* Network = GameManager::GetInstance()->Network;
-    while (!deleteSceneRequest && !changeSceneRequest)
+    while (!deleteSceneRequest && !changeNextSceneRequest && !changePreviousSceneRequest)
     {
         char buffer[128];
+        memset(buffer, -52, 128);
         Network->ReceivePacket(TCP, buffer);
 
         PacketType packetType = Network->GetPacketType(buffer);
@@ -191,10 +225,13 @@ void WaitRoomScene::GetServerPackets()
             ServerMessagePacket packet;
             Network->GetPacketFromBytes(buffer, packet);
             ServerMessage msg = Network->GetServerMessage(packet.msg);
-            if(msg == Server_PlayerConnected || msg == Server_PlayerDisconnected)
+            if (msg == Server_PlayerConnected || msg == Server_PlayerDisconnected)
                 UpdateRoomInfo();
+            else if (msg == Server_StartBattle)
+                changeNextSceneRequest = true;
         } 
 
+        //delete buffer;
         sf::sleep(sf::milliseconds(16));
     }
 }

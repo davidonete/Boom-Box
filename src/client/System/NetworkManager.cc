@@ -100,22 +100,6 @@ bool NetworkManager::SendPacket(LogInPacket packet)
     return true;
 }
 
-bool NetworkManager::SendPacket(LogOutPacket packet)
-{
-    // Create bytes to send
-    const int size = sizeof(packet);
-    char buffer[size];
-    memcpy(buffer, &packet, size);
-
-    if (tcpSocket.send(buffer, size) != sf::Socket::Done)
-    {
-        std::cout << "Error sending TCP packet...";
-        return false;
-    }
-
-    return true;
-}
-
 bool NetworkManager::SendPacket(ChatPacket packet)
 {
     // Create bytes to send
@@ -132,7 +116,7 @@ bool NetworkManager::SendPacket(ChatPacket packet)
     return true;
 }
 
-bool NetworkManager::ReceivePacket(ConnectionType Type, char* buffer)
+bool NetworkManager::ReceivePacket(ConnectionType Type, char buffer[])
 {
     //Prepare buffer to receive
     const int size = 128;
@@ -165,6 +149,14 @@ unsigned int NetworkManager::GetSizeOfBytes(char bytes[])
     }
 
     return size;
+}
+
+void NetworkManager::LogOut()
+{
+    ClientRequestPacket packet;
+    packet.ID = GetClientID();
+    packet.msg = GetCodeFromMessage(Request_DisconnectPlayer);
+    SendPacket(TCP, packet);
 }
 
 PacketType NetworkManager::GetPacketType(char bytes[])

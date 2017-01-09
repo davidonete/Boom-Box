@@ -25,11 +25,14 @@ enum ServerMessage
     Server_AlreadyLogged,
     Server_PlayerConnected,
     Server_PlayerDisconnected,
+    Server_StartBattle,
 };
 
 enum RequestMessage
 {
     Request_GetPlayersInfo,
+    Request_DisconnectPlayer,
+    Request_StartBattle,
 };
 
 enum PacketType
@@ -46,11 +49,6 @@ struct LogInPacket
 {
     char username[32];
     char password[32];
-};
-
-struct LogOutPacket
-{
-    unsigned int ID;
 };
 
 struct GamePacket
@@ -102,12 +100,11 @@ public:
     void Disconnect(ConnectionType type);
 
     bool SendPacket(LogInPacket packet);
-    bool SendPacket(LogOutPacket packet);
     bool SendPacket(ChatPacket packet);
     bool SendPacket(ConnectionType type, GamePacket packet);
     bool SendPacket(ConnectionType type, ClientRequestPacket packet);
 
-    bool ReceivePacket(ConnectionType Type, char* buffer);
+    bool ReceivePacket(ConnectionType Type, char buffer[]);
     bool GetPacketFromBytes(char bytes[], ChatPacket &packet);
     bool GetPacketFromBytes(char bytes[], ServerMessagePacket &packet);
     bool GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
@@ -129,6 +126,7 @@ public:
     inline void SetUsername(std::string username) { client.username = username; }
 
     static unsigned int GetSizeOfBytes(char bytes[]);
+    void LogOut();
 
 private:
     sf::TcpSocket tcpSocket;

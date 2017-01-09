@@ -94,7 +94,7 @@ void LoginScene::Update()
     {
         Window->HandleEvent(event);
         if (event.type == sf::Event::Closed)
-            GameManager::GetInstance()->CloseGame();
+            deleteSceneRequest = true;
 
         else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Tab)
         {
@@ -122,8 +122,13 @@ void LoginScene::Render()
     RenderWindow->draw(sprite);
     GUI.Display(*RenderWindow);
 
-    if (deleteSceneRequest)
-        GameManager::GetInstance()->ChangeScene(GameScene_WaitRoom);
+    if (deleteSceneRequest || changeSceneRequest)
+    {
+        if (deleteSceneRequest)
+            GameManager::GetInstance()->CloseGame();
+        else if (changeSceneRequest)
+            GameManager::GetInstance()->ChangeScene(GameScene_WaitRoom);
+    }
 }
 
 void LoginScene::OnLoginPressed()
@@ -145,6 +150,7 @@ void LoginScene::OnLoginPressed()
             GM->Network->SendPacket(packet);
 
             char buffer[128];
+            memset(buffer, -52, 128);
             GM->Network->ReceivePacket(TCP, buffer);
 
             if(GM->Network->GetPacketType(buffer) == Type_ClientRequestPacket)
@@ -160,7 +166,7 @@ void LoginScene::OnLoginPressed()
 
                     GM->Network->SetClientID(confirmation.ID);
                     GM->Network->SetUsername(username);
-                    deleteSceneRequest = true;
+                    changeSceneRequest = true;
                 }
                 else if (message == Server_AlreadyLogged)
                     LoginError("This user is already logged in the game.");
@@ -177,7 +183,7 @@ void LoginScene::OnLoginPressed()
 
 void LoginScene::OnExitPressed()
 {
-    GameManager::GetInstance()->CloseGame();
+    deleteSceneRequest = true;
 }
 
 void LoginScene::LoginError(sf::String message)

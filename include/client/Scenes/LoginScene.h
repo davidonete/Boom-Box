@@ -32,6 +32,7 @@ private:
     sfg::Entry::Ptr Username;
     sfg::Entry::Ptr Password;
 
+    bool changeSceneRequest = false;
     bool deleteSceneRequest = false;
 };
 

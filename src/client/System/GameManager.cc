@@ -113,6 +113,10 @@ void GameManager::ChangeScene(GameScene scene)
             SceneInstance = new WaitRoomScene();
         break;
 
+        case GameScene_Battle:
+            SceneInstance = new LoginScene();
+        break;
+
         default:
             SceneInstance = new Scene();
         break;
@@ -123,10 +127,7 @@ void GameManager::ChangeScene(GameScene scene)
 
 void GameManager::CloseGame()
 {
-    LogOutPacket packet;
-    packet.ID = Network->GetClientID();
-    Network->SendPacket(packet);
-
+    Network->LogOut();
     Network->Disconnect(TCP);
     Network->Disconnect(UDP);
     Window->close();

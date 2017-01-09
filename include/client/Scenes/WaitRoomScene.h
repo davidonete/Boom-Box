@@ -28,6 +28,9 @@ private:
 
     void InitGUI();
     void OnSendPressed();
+    void OnLogOutPressed();
+    void OnStartGamePressed();
+
     void GetServerPackets();
     void PrintMessage(std::string message);
 
@@ -46,7 +49,8 @@ private:
     sf::Sprite sprite;
 
     bool deleteSceneRequest = false;
-    bool changeSceneRequest = false;
+    bool changeNextSceneRequest = false;
+    bool changePreviousSceneRequest = false;
     std::vector<sfg::Label::Ptr> Messages;
 
     sf::Mutex mutex;
@@ -64,7 +68,7 @@ private:
 
     //Chat position % (0 to 1)
     float UserPosX = 0.5f;
-    float UserPosY = 0.3f;
+    float UserPosY = 0.15f;
     //User window size % (0 to 1)
     float UserSizeX = 1.0f;
     float UserSizeY = 1.0f;
