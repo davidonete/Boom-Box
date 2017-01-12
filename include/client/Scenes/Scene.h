@@ -15,7 +15,8 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 
-#include "Game/Object.h"
+#include "Game/Platform.h"
+#include "Game/Player.h"
 
 enum GameScene
 {
@@ -36,12 +37,12 @@ public:
 	virtual void Render();
 
 	inline b2World* GetWorld() { return World; }
-	void AddObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
-
-	//GameScene SceneType;
 
 protected:
-	std::vector<Object> Objects;
+    void AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, bool localPlayer);
+    void AddPlatform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world);
+
+	std::vector<Object*> Objects;
 	b2World* World;
 
 private:

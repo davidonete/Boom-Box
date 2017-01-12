@@ -6,34 +6,34 @@
 class LoginScene : public Scene
 {
 public:
-    LoginScene();
-    ~LoginScene();
+  LoginScene();
+  ~LoginScene();
 
-    void Init() override;
-    void Input() override;
-    void Update() override;
-    void Render() override;
+  void Init() override;
+  void Input() override;
+  void Update() override;
+  void Render() override;
 
 private:
-    void InitGUI();
-    void OnLoginPressed();
-    void OnExitPressed();
-    void LoginError(sf::String message);
+  void InitGUI();
+  void OnLoginPressed();
+  void OnExitPressed();
+  void LoginError(sf::String message);
 
-    sfg::SFGUI GUI;
-    sfg::Window::Ptr Window;
-    sf::RenderWindow* RenderWindow;
-    sf::Clock GUIClock;
+  sfg::SFGUI GUI;
+  sfg::Window::Ptr Window;
+  sf::RenderWindow* RenderWindow;
+  sf::Clock GUIClock;
 
-    sf::Texture background;
-    sf::Sprite sprite;
+  sf::Texture background;
+  sf::Sprite sprite;
 
-    sfg::Label::Ptr ErrorMsg;
-    sfg::Entry::Ptr Username;
-    sfg::Entry::Ptr Password;
+  sfg::Label::Ptr ErrorMsg;
+  sfg::Entry::Ptr Username;
+  sfg::Entry::Ptr Password;
 
-    bool changeSceneRequest = false;
-    bool deleteSceneRequest = false;
+  bool changeSceneRequest = false;
+  bool deleteSceneRequest = false;
 };
 
 #endif

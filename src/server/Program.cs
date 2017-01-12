@@ -76,6 +76,7 @@ public struct PlayerInfoPacket
 {
     public uint ID;
     public uint winCount;
+    public uint authority;
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
     public string username;
 }
@@ -97,10 +98,12 @@ public enum ServerState
 
 public enum ServerMessage
 {
-    Server_Refused,
+    Server_Denied,
+    Server_Denied_NotAuthority,
+    Server_Denied_AlreadyLogged,
+    Server_Denied_NotEnoughPlayers,
     Server_Accepted,
     Server_AcceptedAuthority,
-    Server_AlreadyLogged,
     Server_PlayerConnected,
     Server_PlayerDisconnected,
     Server_StartBattle,
@@ -339,7 +342,7 @@ public class Server
             {
                 //Refuse all incoming TCP messages and requests from clients
                 ServerMessagePacket packet;
-                packet.msg = (uint)ServerMessage.Server_Refused;
+                packet.msg = (uint)ServerMessage.Server_Denied;
                 Send(handler, GetBytesFromPacket(packet));
             }
 
@@ -430,13 +433,13 @@ public class Server
                         {
                             if (players[i].ID == id)
                             {
-                                packet.msg = (uint)ServerMessage.Server_AlreadyLogged;
+                                packet.msg = (uint)ServerMessage.Server_Denied_AlreadyLogged;
                                 break;
                             }
                         }
                     }
 
-                    if (packet.msg != (uint)ServerMessage.Server_AlreadyLogged)
+                    if (packet.msg != (uint)ServerMessage.Server_Denied_AlreadyLogged)
                     {
                         PlayerInfo newPlayer;
                         newPlayer.ID = id;
@@ -514,6 +517,7 @@ public class Server
         PlayerInfoPacket lastPacket;
         lastPacket.ID = 0;
         lastPacket.winCount = 0;
+        lastPacket.authority = 0;
         lastPacket.username = "";
 
         for (int i = 0; i < players.Count; i++)
@@ -522,6 +526,7 @@ public class Server
             {
                 lastPacket.ID = players[i].ID;
                 lastPacket.winCount = players[i].winCount;
+                lastPacket.authority = Convert.ToUInt32(players[i].authority);
                 lastPacket.username = players[i].username;
             }
             else
@@ -529,6 +534,7 @@ public class Server
                 PlayerInfoPacket packet;
                 packet.ID = players[i].ID;
                 packet.winCount = players[i].winCount;
+                packet.authority = Convert.ToUInt32(players[i].authority);
                 packet.username = players[i].username;
                 Send(handler, GetBytesFromPacket(packet));
             }
@@ -541,15 +547,23 @@ public class Server
     {
         Console.WriteLine("Received 'Start Battle' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
         ServerMessagePacket packet;
-        if (CheckPlayerAuthority(ID) && players.Count > 0)
+        if (CheckPlayerAuthority(ID))
         {
-            packet.msg = (uint)ServerMessage.Server_StartBattle;
-            Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
-            serverState = ServerState.Battle;
+            if (players.Count > 1)
+            {
+                packet.msg = (uint)ServerMessage.Server_StartBattle;
+                Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+                serverState = ServerState.Battle;
+            }
+            else
+            {
+                packet.msg = (uint)ServerMessage.Server_Denied_NotEnoughPlayers;
+                Send(handler, GetBytesFromPacket(packet));
+            }
         }
         else
         {
-            packet.msg = (uint)ServerMessage.Server_Refused;
+            packet.msg = (uint)ServerMessage.Server_Denied_NotAuthority;
             Send(handler, GetBytesFromPacket(packet));
         }
     }

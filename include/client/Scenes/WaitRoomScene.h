@@ -14,64 +14,71 @@
 class WaitRoomScene : public Scene
 {
 public:
-    WaitRoomScene();
-    ~WaitRoomScene();
+  WaitRoomScene();
+  ~WaitRoomScene();
 
-    void Init() override;
-    void Input() override;
-    void Update() override;
-    void Render() override;
+  void Init() override;
+  void Input() override;
+  void Update() override;
+  void Render() override;
 
 private:
-    void UpdateRoomInfo();
-    void AddPlayerInfo(char * username, unsigned int wincount, unsigned int row);
+  void UpdateRoomInfo();
+  void UpdateGUI();
+  void AddPlayerInfo(char * username, unsigned int wincount, bool me, unsigned int row);
 
-    void InitGUI();
-    void OnSendPressed();
-    void OnLogOutPressed();
-    void OnStartGamePressed();
+  void InitGUI();
+  void OnSendPressed();
+  void OnLogOutPressed();
+  void OnStartGamePressed();
 
-    void GetServerPackets();
-    void PrintMessage(std::string message);
+  void GetServerPackets();
+  void PrintMessage(std::string message);
 
-    sfg::SFGUI GUI;
-    sfg::Desktop Desktop;
+  sfg::SFGUI GUI;
+  sfg::Desktop Desktop;
 
-    sfg::Entry::Ptr TextBox;
-    sfg::Box::Ptr ChatWindowBox;
-    sfg::Table::Ptr UsersWindowBox;
-    sfg::Label::Ptr UserText;
+  sfg::Entry::Ptr TextBox;
+  sfg::Box::Ptr ChatWindowMessages;
+  sfg::Box::Ptr ChatWindowBox;
+  sfg::Table::Ptr UsersWindowBox;
+  sfg::Label::Ptr UserText;
+  sfg::Window::Ptr UserWindow;
+  sfg::Window::Ptr ChatWindow;
 
-    sf::RenderWindow* RenderWindow;
-    sf::Clock GUIClock;
+  sfg::Label::Ptr UserServerMessage;
+  sfg::Table::Ptr UserButtonTable;
 
-    sf::Texture background;
-    sf::Sprite sprite;
+  sf::RenderWindow* RenderWindow;
+  sf::Clock GUIClock;
 
-    bool deleteSceneRequest = false;
-    bool changeNextSceneRequest = false;
-    bool changePreviousSceneRequest = false;
-    std::vector<sfg::Label::Ptr> Messages;
+  sf::Texture background;
+  sf::Sprite sprite;
 
-    sf::Mutex mutex;
-    sf::Thread* serverReceiveThread;
+  bool deleteSceneRequest = false;
+  bool changeNextSceneRequest = false;
+  bool changePreviousSceneRequest = false;
+  std::vector<sfg::Label::Ptr> Messages;
 
-    //GUI Configuration
-    //Chat position % (0 to 1)
-    float ChatPosX = 0.5f;
-    float ChatPosY = 0.8f;
-    //Chat size % (0 to 1)
-    float ChatSizeX = 1.0f;
-    float ChatSizeY = 1.0f;
-    //Max chat messages showed
-    int MaxChatMessages = 10;
+  sf::Mutex mutex;
+  sf::Thread* serverReceiveThread;
 
-    //Chat position % (0 to 1)
-    float UserPosX = 0.5f;
-    float UserPosY = 0.15f;
-    //User window size % (0 to 1)
-    float UserSizeX = 1.0f;
-    float UserSizeY = 1.0f;
+  //GUI Configuration
+  //Chat position % (0 to 1)
+  float ChatPosX = 0.5f;
+  float ChatPosY = 0.9f;
+  //Chat size % (0 to 1)
+  float ChatSizeX = 1.0f;
+  float ChatSizeY = 1.0f;
+  //Max chat messages showed
+  int MaxChatMessages = 10;
+
+  //Chat position % (0 to 1)
+  float UserPosX = 0.5f;
+  float UserPosY = 0.15f;
+  //User window size % (0 to 1)
+  float UserSizeX = 1.0f;
+  float UserSizeY = 1.0f;
 };
 
 #endif

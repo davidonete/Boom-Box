@@ -1,6 +1,7 @@
 #include "System/GameManager.h"
 #include "Scenes/LoginScene.h"
 #include "Scenes/WaitRoomScene.h"
+#include "Scenes/BattleScene.h"
 
 //Path of assets on the different OS targets
 #ifdef _WIN32
@@ -35,7 +36,7 @@ GameManager* GameManager::GetInstance()
 void GameManager::Init()
 {
     //Initialize window (width, height, bits per pixel)
-    Window = new sf::RenderWindow(sf::VideoMode(600, 400, 32), "Super Awesome Game - v1.0");
+    Window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "Super Awesome Game - v1.0");
     //Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "Super Awesome Game - v1.0");//, sf::Style::Fullscreen);
     Window->setFramerateLimit(60);
 
@@ -43,9 +44,6 @@ void GameManager::Init()
     Network->Init();
 
     SceneInstance = nullptr;
-
-  //Initialize world with gravity value
-  //world = new b2World(b2Vec2(0.0f, 9.8f));
 }
 
 void GameManager::Input()
@@ -114,7 +112,7 @@ void GameManager::ChangeScene(GameScene scene)
         break;
 
         case GameScene_Battle:
-            SceneInstance = new LoginScene();
+            SceneInstance = new BattleScene();
         break;
 
         default:
@@ -133,7 +131,8 @@ void GameManager::CloseGame()
     Window->close();
 }
 
-std::string GameManager::GetImagePath(const char* filename) {
+std::string GameManager::GetImagePath(const char* filename) 
+{
     std::string path = IMAGE_PATH;
     return path.append(filename);
 }

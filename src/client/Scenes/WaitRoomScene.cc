@@ -32,7 +32,7 @@ void WaitRoomScene::Init()
     sf::Vector2u winSize = RenderWindow->getSize();
     sf::Vector2f bgScale;
     bgScale.x = (winSize.x * 0.5f) / 800.0f;
-    bgScale.y = (winSize.y * 1.0f) / 600.0f;
+    bgScale.y = (winSize.y * 0.7f) / 600.0f;
     sprite.setScale(bgScale);
 
     //Receive server packets
@@ -43,34 +43,34 @@ void WaitRoomScene::Init()
 void WaitRoomScene::InitGUI()
 {
     sf::Vector2f winSize = (sf::Vector2f)RenderWindow->getSize();
-    sf::Vector2f ChatSize(((winSize.x * 500.f) / 1366.0f) * ChatSizeX, ((winSize.y * 160.f) / 768.0f) * ChatSizeY);
+    sf::Vector2f ChatSize(((winSize.x * 700.f) / 1366.0f) * ChatSizeX, ((winSize.y * 250.f) / 768.0f) * ChatSizeY);
     MaxChatMessages = (int)((ChatSize.y * 10) / 160.0f);
 
-    auto ChatWindow = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
+    ChatWindow = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
 
     auto button = sfg::Button::Create("Send");
     button->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnSendPressed, this));
 
-    ChatWindowBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+    ChatWindowMessages = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
 
     auto scrolledwindow = sfg::ScrolledWindow::Create();
     scrolledwindow->SetScrollbarPolicy(sfg::ScrolledWindow::HORIZONTAL_AUTOMATIC | sfg::ScrolledWindow::VERTICAL_AUTOMATIC);
-    scrolledwindow->AddWithViewport(ChatWindowBox);
+    scrolledwindow->AddWithViewport(ChatWindowMessages);
     scrolledwindow->SetRequisition(ChatSize);
 
     TextBox = sfg::Entry::Create();
     TextBox->SetMaximumLength(45);
-    TextBox->SetRequisition(sf::Vector2f(100.0f, 20.0f));
+    TextBox->SetRequisition(sf::Vector2f(250.0f, 35.0f));
 
     sfg::Table::Ptr Table = sfg::Table::Create();
     Table->Attach(TextBox, sf::Rect<sf::Uint32>(0, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(button, sf::Rect<sf::Uint32>(1, 0, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(button, sf::Rect<sf::Uint32>(1, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
 
-    auto box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 10.f);
-    box->Pack(scrolledwindow, false, true);
-    box->Pack(Table, false, true);
+    ChatWindowBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 10.f);
+    ChatWindowBox->Pack(scrolledwindow, true, true);
+    ChatWindowBox->Pack(Table, false, true);
 
-    ChatWindow->Add(box);
+    ChatWindow->Add(ChatWindowBox);
 
     sf::Vector2f loginSize = ChatWindow->GetRequisition();
     sf::Vector2f pos = sf::Vector2f((winSize.x - loginSize.x) * ChatPosX, (winSize.y - loginSize.y) * ChatPosY);
@@ -78,9 +78,9 @@ void WaitRoomScene::InitGUI()
 
     Desktop.Add(ChatWindow);
 
-    sf::Vector2f UserSize(((winSize.x * 500.f) / 1366.0f) * UserSizeX, ((winSize.y * 160.f) / 768.0f) * UserSizeY);
+    sf::Vector2f UserSize(((winSize.x * 550.f) / 1366.0f) * UserSizeX, ((winSize.y * 160.f) / 768.0f) * UserSizeY);
 
-    auto UserWindow = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
+    UserWindow = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
     UsersWindowBox = sfg::Table::Create();
 
     auto userscrolledwindow = sfg::ScrolledWindow::Create();
@@ -94,24 +94,18 @@ void WaitRoomScene::InitGUI()
     UserText->SetText(text.str());
     UserText->SetAlignment(sf::Vector2f(0.0f, 0.0f));
     
-    sfg::Button::Ptr StartGame = sfg::Button::Create("Start Game");
-    StartGame->SetRequisition(sf::Vector2f(100.0f, 5.0f));
-    StartGame->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnStartGamePressed, this));
+    UserButtonTable = sfg::Table::Create();
+    UserButtonTable->SetRowSpacings(5.f);
+    UserButtonTable->SetColumnSpacings(5.f);
 
-    sfg::Button::Ptr LogOut = sfg::Button::Create("Log Out");
-    LogOut->SetRequisition(sf::Vector2f(100.0f, 5.0f));
-    LogOut->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnLogOutPressed, this));
-
-    sfg::Table::Ptr Table2 = sfg::Table::Create();
-    Table2->Attach(StartGame, sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
-    Table2->Attach(LogOut, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
-    Table2->SetRowSpacings(5.f);
-    Table2->SetColumnSpacings(5.f);
+    UserServerMessage = sfg::Label::Create();
+    UserServerMessage->SetAlignment(sf::Vector2f(0.0f, 0.0f));
 
     auto box2 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 10.f);
     box2->Pack(UserText);
     box2->Pack(userscrolledwindow, false, true);
-    box2->Pack(Table2, true, false);
+    box2->Pack(UserServerMessage);
+    box2->Pack(UserButtonTable, true, true);
 
     UserWindow->Add(box2);
 
@@ -137,6 +131,20 @@ void WaitRoomScene::Update()
             deleteSceneRequest = true;
         else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return)
             OnSendPressed();
+        else if (event.type == sf::Event::Resized)
+        {
+            sf::Vector2f winSize = (sf::Vector2f)RenderWindow->getSize();
+
+            sf::Vector2f UserWindowSize = UserWindow->GetRequisition();
+            sf::Vector2f userPos = sf::Vector2f((winSize.x - UserWindowSize.x) * UserPosX, (winSize.y - UserWindowSize.y) * UserPosY);
+            UserWindow->SetPosition(userPos);
+            
+            sf::Vector2f loginSize = ChatWindow->GetRequisition();
+            sf::Vector2f pos = sf::Vector2f((winSize.x - loginSize.x) * ChatPosX, (loginSize.y + userPos.y) * ChatPosY * 1.1f);
+            ChatWindow->SetPosition(pos);
+
+            MaxChatMessages = (int)((loginSize.y * 10) / 160.0f);
+        }
     }
 
     auto microseconds = GUIClock.getElapsedTime().asMicroseconds();
@@ -229,6 +237,11 @@ void WaitRoomScene::GetServerPackets()
                 UpdateRoomInfo();
             else if (msg == Server_StartBattle)
                 changeNextSceneRequest = true;
+            else if (msg == Server_Denied_NotEnoughPlayers)
+            {
+                UserServerMessage->SetText("There are not enough players.");
+                sfg::Context::Get().GetEngine().SetProperty("Label#ServerMessage", "Color", sf::Color(127, 0, 0, 255));
+            }
         } 
 
         //delete buffer;
@@ -241,7 +254,7 @@ void WaitRoomScene::PrintMessage(std::string message)
     mutex.lock();
     if (Messages.size() == MaxChatMessages)
     {
-        ChatWindowBox->Remove(Messages[0]);
+        ChatWindowMessages->Remove(Messages[0]);
         Messages.erase(Messages.begin());
     }
 
@@ -249,7 +262,7 @@ void WaitRoomScene::PrintMessage(std::string message)
     a->SetAlignment(sf::Vector2f(0.0f, 0.0f));
 
     Messages.push_back(a);
-    ChatWindowBox->Pack(Messages[Messages.size() - 1]);
+    ChatWindowMessages->Pack(Messages[Messages.size() - 1]);
     mutex.unlock();
 }
 
@@ -284,7 +297,13 @@ void WaitRoomScene::UpdateRoomInfo()
                 Network->GetPacketFromBytes(bufferPart, player);
                 if (Network->GetPacketType(bufferPart) == Type_PlayerInfoPacket)
                 {
-                    AddPlayerInfo(player.username, player.wincount, numPlayers);
+                    bool me = false;
+                    if (player.id == Network->GetClientID())
+                    {
+                        Network->SetAuthority(player.authority);
+                        me = true;
+                    }
+                    AddPlayerInfo(player.username, player.wincount, me, numPlayers);
                     numPlayers++;
                 }
             }
@@ -295,11 +314,16 @@ void WaitRoomScene::UpdateRoomInfo()
             if (Network->GetPacketType(buffer) == Type_PlayerInfoPacket)
             {
                 PlayerInfoPacket player;
+                bool me = false;
                 Network->GetPacketFromBytes(buffer, player);
                 if (player.id == Network->GetClientID())
+                {
+                    Network->SetAuthority(player.authority);
                     allInfoReceived = true;
+                    me = true;
+                }
 
-                AddPlayerInfo(player.username, player.wincount, numPlayers);
+                AddPlayerInfo(player.username, player.wincount, me, numPlayers);
                 numPlayers++;
             }
         }
@@ -308,9 +332,39 @@ void WaitRoomScene::UpdateRoomInfo()
     std::stringstream text;
     text << "Users in the room: " << numPlayers;
     UserText->SetText(text.str());
+
+    UpdateGUI();
 }
 
-void WaitRoomScene::AddPlayerInfo(char* username, unsigned int wincount, unsigned int row)
+void WaitRoomScene::UpdateGUI()
+{
+    UserButtonTable->RemoveAll();
+
+    sfg::Button::Ptr LogOut = sfg::Button::Create("Log Out");
+    LogOut->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+    LogOut->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnLogOutPressed, this));
+
+    if (GameManager::GetInstance()->Network->IsAuthority())
+    {
+        sfg::Button::Ptr StartGame = sfg::Button::Create("Start Game");
+        StartGame->SetRequisition(sf::Vector2f(100.0f, 5.0f));
+        StartGame->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&WaitRoomScene::OnStartGamePressed, this));
+
+        UserServerMessage->SetText("Press start to begin the game...");
+        UserServerMessage->SetId("ServerMessage");
+        sfg::Context::Get().GetEngine().SetProperty("Label#ServerMessage", "Color", sf::Color(255, 255, 255, 255));
+
+        UserButtonTable->Attach(StartGame, sf::Rect<sf::Uint32>(0, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+        UserButtonTable->Attach(LogOut, sf::Rect<sf::Uint32>(1, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    }
+    else
+    {
+        UserServerMessage->SetText("Waiting for the host to start...");
+        UserButtonTable->Attach(LogOut, sf::Rect<sf::Uint32>(1, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    }
+}
+
+void WaitRoomScene::AddPlayerInfo(char* username, unsigned int wincount, bool me, unsigned int row)
 {
     mutex.lock();
     std::stringstream text;
@@ -318,6 +372,11 @@ void WaitRoomScene::AddPlayerInfo(char* username, unsigned int wincount, unsigne
 
     sfg::Label::Ptr user = sfg::Label::Create(username);
     user->SetAlignment(sf::Vector2f(0.0f, 0.0f));
+    if (me)
+    {
+        user->SetId("User");
+        sfg::Context::Get().GetEngine().SetProperty("Label#User", "Color", sf::Color(255, 255, 0, 255));
+    }
     sfg::Label::Ptr wins = sfg::Label::Create(text.str());
     wins->SetAlignment(sf::Vector2f(1.0f, 0.0f));
 

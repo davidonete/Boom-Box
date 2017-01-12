@@ -79,8 +79,6 @@ private:
   sf::RenderWindow* Window;
   std::vector<InputData> LastInputPressed;
 
-  bool authority;
-
   static GameManager* Instance;
 };
 

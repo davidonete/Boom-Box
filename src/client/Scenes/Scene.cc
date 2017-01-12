@@ -7,33 +7,35 @@ Scene::~Scene()
     Objects.clear();
 }
 
-void Scene::Init() 
-{
-    World = new b2World(b2Vec2(0.0f, 9.8f));
-}
+void Scene::Init() {}
 
 void Scene::Input()
 {
 	for (unsigned int i = 0; i < Objects.size(); i++)
-		Objects[i].Input();
+		Objects[i]->Input();
 }
 
 void Scene::Update()
 {
 	for (unsigned int i = 0; i < Objects.size(); i++)
-		Objects[i].Update();
+		Objects[i]->Update();
 }
 
 void Scene::Render()
 {
 	for (unsigned int i = 0; i < Objects.size(); i++)
-		Objects[i].Render();
+		Objects[i]->Render();
 
 	//Simulate the world 
 	World->Step(1 / 60.0f, 8, 3);
 }
 
-void Scene::AddObject(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char * texturePath, Vec2 spriteOrigin)
+void Scene::AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, bool localPlayer)
 {
-	Objects.push_back(Object(position, scale, type, density, friction, texturePath, spriteOrigin));
+    Objects.push_back(new Player(position, rotation, density, friction, world, localPlayer));
+}
+
+void Scene::AddPlatform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world)
+{
+    Objects.push_back(new Platform(position, rotation, density, friction, world));
 }

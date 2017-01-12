@@ -29,7 +29,7 @@ void LoginScene::Init()
     sf::Vector2u winSize = RenderWindow->getSize();
     sf::Vector2f bgScale;
     bgScale.x = (winSize.x * 0.5f) / 800.0f;
-    bgScale.y = (winSize.y * 1.0f) / 600.0f;
+    bgScale.y = (winSize.y * 0.7f) / 600.0f;
     sprite.setScale(bgScale);
 }
 
@@ -105,6 +105,13 @@ void LoginScene::Update()
         }
         else if (event.type == sf::Event::KeyReleased && event.key.code == sf::Keyboard::Return)
             OnLoginPressed();
+        else if (event.type == sf::Event::Resized)
+        {
+            sf::Vector2f loginSize = Window->GetRequisition();
+            sf::Vector2u winSize = RenderWindow->getSize();
+            sf::Vector2f pos = sf::Vector2f((winSize.x * 0.5f) - (loginSize.x * 0.5f), (winSize.y * 0.5f) - (loginSize.y * 0.5f));
+            Window->SetPosition(pos);
+        }
     }
     
     auto microseconds = GUIClock.getElapsedTime().asMicroseconds();
@@ -168,7 +175,7 @@ void LoginScene::OnLoginPressed()
                     GM->Network->SetUsername(username);
                     changeSceneRequest = true;
                 }
-                else if (message == Server_AlreadyLogged)
+                else if (message == Server_Denied_AlreadyLogged)
                     LoginError("This user is already logged in the game.");
                 else
                     LoginError("Wrong username or password. Try again.");

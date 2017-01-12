@@ -16,10 +16,18 @@
 
 class GameManager;
 
+//Pass from pixels to box2D coords
+#define SCALE 30.0f 
+
 struct Vec2
 {
   float32 x;
   float32 y;
+  Vec2()
+  {
+      x = 0.0f;
+      y = 0.0f;
+  }
   Vec2(float32 _x, float32 _y)
   {
     x = _x;
@@ -47,8 +55,9 @@ struct ObjectParameters
 class Object
 {
 public:
+  Object() {}
   // Only for square shapes
-  Object(Vec2 position, Vec2 scale, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin);
+  Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin, b2World* world);
   ~Object();
 
   virtual void Init();
@@ -57,21 +66,22 @@ public:
   void Render();
 
 protected:
-  sf::Texture Texture;
-
   Vec2 GetPosition();
   float32 GetRotation();
 
   void SetPosition(Vec2 pos);
-  void SetRotaiton(Vec2 rot);
+  void SetRotaiton(float32 angle);
+
+  b2Body* Body;
+  sf::Texture Texture;
+  Vec2 SpriteOrigin;
+
+  GameManager* GM;
+  sf::RenderWindow* Window;
 
 private:
-  b2Body* Body;
   sf::Sprite LastUpdatedSprite;
 
-  b2Vec2 SpriteOrigin;
-    
-  GameManager* GM;
 };
 
 #endif
