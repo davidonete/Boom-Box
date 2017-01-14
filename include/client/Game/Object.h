@@ -12,6 +12,8 @@
 #include <SFML/Graphics.hpp>
 #include <Box2D/Box2D.h>
 
+#include "System/CollisionManager.h"
+
 #pragma once
 
 class GameManager;
@@ -41,47 +43,65 @@ enum ObjectType
   DynamicBody
 };
 
-struct ObjectParameters
+struct ObjectSprite
 {
-  Vec2 position;
-  Vec2 scale;
-  ObjectType type;
-  float32 density;
-  float32 friction;
-  char* texturePath;
-  Vec2 spriteOrigin;
+    Vec2 position;
+    float32 rotation;
+    //The middle coordinate of the sprite (half of the size)
+    Vec2 spriteOrigin;
+    //The texture reference
+    sf::Texture texture;
+    //The sprite that is going to be rendered on screens (needs to be updated constantly)
+    sf::Sprite sprite;
+};
+
+struct ObjectInfo
+{
+    b2Body* body;
+    ObjectSprite sprite;
 };
 
 class Object
 {
 public:
-  Object() {}
-  // Only for square shapes
-  Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, Vec2 spriteOrigin, b2World* world);
+  Object();
   ~Object();
+
+  //Only for square shapes
+  Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, b2World* world);
 
   virtual void Init();
   virtual void Input();
   virtual void Update();
-  void Render();
+  virtual void Render();
+
+  Vec2 GetPosition();
+  void SetPosition(Vec2 pos);
+
+  virtual void OnCollisionDetected(Object* otherObject);
+  inline bool GetIsCollisionEnabled() { return collisionEnabled; };
 
 protected:
-  Vec2 GetPosition();
   float32 GetRotation();
+  ObjectInfo* GetObject() { return &object; }
 
-  void SetPosition(Vec2 pos);
+  inline void SetCollisionEnabled(bool enable) { collisionEnabled = enable; };
   void SetRotaiton(float32 angle);
 
-  b2Body* Body;
-  sf::Texture Texture;
-  Vec2 SpriteOrigin;
+  void ApplyForce(Vec2 force);
+  void ApplyImpulse(Vec2 impulse);
+
+  void UpdateSprite(ObjectSprite* sprite, Vec2 pos, float32 rot);
+  void RenderSprite(ObjectSprite* sprite);
 
   GameManager* GM;
-  sf::RenderWindow* Window;
 
 private:
-  sf::Sprite LastUpdatedSprite;
+  ObjectInfo object;
+  sf::RenderWindow* Window;
 
+  bool collisionEnabled = false;
+  CollisionManager* collisionManager;
 };
 
 #endif

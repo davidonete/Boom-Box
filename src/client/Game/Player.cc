@@ -1,32 +1,20 @@
 #include "Game/Player.h"
 #include "System/GameManager.h"
 
-Player::Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World * world, bool localPlayer)
+Player::Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World * world, bool localPlayer) 
+    : Object(position, Vec2(55.0f, 55.0f), rotation, DynamicBody, density, friction, "player.png", world)
 {
-    GM = GameManager::GetInstance();
-    Window = GM->GetWindow();
+    isPlayer = localPlayer;
+    bomb.texture.loadFromFile(GameManager::GetImagePath("bomb.png"));
+    bomb.spriteOrigin = Vec2(30.0f / 2.0f, 40.0f / 2.0f);
 
-    Vec2 Scale(32.0f, 32.0f);
-    SpriteOrigin = Vec2(Scale.x / 2.0f, Scale.y / 2.0f);
-    Texture.loadFromFile(GameManager::GetImagePath("box.png"));
+    if (isPlayer)
+    {
+        playerMark.texture.loadFromFile(GameManager::GetImagePath("Mark.png"));
+        playerMark.spriteOrigin = Vec2(20.0f / 2.0f, 110.0f / 2.0f);
+    }
 
-    b2BodyDef BodyDef;
-    BodyDef.position = b2Vec2(position.x / SCALE, position.y / SCALE);
-    BodyDef.type = b2_dynamicBody;
-
-    Body = world->CreateBody(&BodyDef);
-
-    SetRotaiton(rotation);
-
-    // Creates a box shape. Divide your desired width and height by 2.
-    b2PolygonShape Shape;
-
-    Shape.SetAsBox(SpriteOrigin.x / SCALE, SpriteOrigin.y / SCALE);
-    b2FixtureDef FixtureDef;
-    FixtureDef.density = density;
-    FixtureDef.friction = friction;
-    FixtureDef.shape = &Shape;
-    Body->CreateFixture(&FixtureDef);
+    jumping = false;
 }
 
 Player::~Player() {}
@@ -47,34 +35,42 @@ void Player::Input()
     Body->ApplyLinearImpulse(b2Vec2(impulse, 0), Body->GetWorldCenter(), true);
     */
 
-    //Force
-    if (GM->CheckInputPressed(InputData_RightPressed))
+    if (isPlayer)
     {
-        b2Vec2 vel = Body->GetLinearVelocity();
-        float velChange = 1.0f - vel.x;
-        float32 force = Body->GetMass() * velChange / (1.0f / 60.0f); //f = mv/t
-        Body->ApplyForce(b2Vec2(force, 0), Body->GetWorldCenter(), true);
-    }
+        //Force
+        if (GM->CheckInputPressed(InputData_RightPressed))
+            ApplyForce(Vec2(speed, 0.0f));
 
-    if (GM->CheckInputPressed(InputData_LeftPressed))
-    {
-        b2Vec2 vel = Body->GetLinearVelocity();
-        float velChange = -1.0f - vel.x;
-        float32 force = Body->GetMass() * velChange / (1.0f / 60.0f); //f = mv/t
-        Body->ApplyForce(b2Vec2(force, 0), Body->GetWorldCenter(), true);
-    }
+        if (GM->CheckInputPressed(InputData_LeftPressed))
+            ApplyForce(Vec2(-speed, 0.0f));
 
-    if (GM->CheckInputPressed(InputData_SpacePressed))
-    {
-        b2Vec2 vel = Body->GetLinearVelocity();
-        float inputValue = 5.0f;
-        float velChange = -inputValue - vel.y;
-        float impulse = Body->GetMass() * velChange;
-        Body->ApplyLinearImpulse(b2Vec2(0.0f, impulse), Body->GetWorldCenter(), true);
+        if (GM->CheckInputPressed(InputData_SpacePressed))
+        {
+            if (!jumping)
+            {
+                jumping = true;
+                ApplyImpulse(Vec2(0.0, -jumpForce));
+            }
+        }
     }
 }
 
 void Player::Update()
 {
     Object::Update();
+
+    if(hasBomb)
+        UpdateSprite(&bomb, GetPosition(), 0.0f);
+    if (isPlayer)
+        UpdateSprite(&playerMark, GetPosition(), 0.0f);
+}
+
+void Player::Render()
+{
+    Object::Render();
+
+    if (hasBomb && isPlayer)
+        RenderSprite(&bomb);
+    if (isPlayer)
+        RenderSprite(&playerMark);
 }

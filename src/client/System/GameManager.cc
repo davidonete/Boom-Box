@@ -44,6 +44,8 @@ void GameManager::Init()
     Network->Init();
 
     SceneInstance = nullptr;
+
+    LastInputPressed.reserve(1);
 }
 
 void GameManager::Input()

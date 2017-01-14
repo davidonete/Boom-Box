@@ -20,9 +20,18 @@ public:
     void Init() override;
     void Input() override;
     void Update() override;
+    void Render() override;
 
 private:
+    ObjectSprite bomb;
+    ObjectSprite playerMark;
 
+    bool isPlayer;
+    bool hasBomb;
+    bool jumping;
+
+    float32 speed = 5.0f;
+    float32 jumpForce = 8.5f;
 };
 
 #endif

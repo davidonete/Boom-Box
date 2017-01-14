@@ -3,27 +3,26 @@
 
 Platform::Platform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world) 
 {
-    GM = GameManager::GetInstance();
-    Window = GM->GetWindow();
+    ObjectInfo* object = GetObject();
 
-    Vec2 Scale(286.0f, 70.0f);
-    SpriteOrigin = Vec2(Scale.x / 2.0f, Scale.y / 2.0f);
-    Texture.loadFromFile(GameManager::GetImagePath("platform.png"));
+    Vec2 Scale(225.0f, 55.0f);
+    object->sprite.spriteOrigin = Vec2(Scale.x / 2.0f, Scale.y / 2.0f);
+    object->sprite.texture.loadFromFile(GameManager::GetImagePath("platform.png"));
 
     b2BodyDef BodyDef;
     BodyDef.position = b2Vec2(position.x / SCALE, position.y / SCALE);
     BodyDef.type = b2_staticBody;
 
-    Body = world->CreateBody(&BodyDef);
+    object->body = world->CreateBody(&BodyDef);
 
     SetRotaiton(rotation);
 
     //Upper part
     b2Vec2 vertices[4];
-    vertices[0].Set((5 - SpriteOrigin.x) / SCALE, (0 - SpriteOrigin.y) / SCALE);
-    vertices[1].Set((280 - SpriteOrigin.x) / SCALE, (0 - SpriteOrigin.y) / SCALE);
-    vertices[2].Set((284 - SpriteOrigin.x) / SCALE, (4 - SpriteOrigin.y) / SCALE);
-    vertices[3].Set((2 - SpriteOrigin.x) / SCALE, (4 - SpriteOrigin.y) / SCALE);
+    vertices[0].Set((4 - object->sprite.spriteOrigin.x) / SCALE, (0 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices[1].Set((220 - object->sprite.spriteOrigin.x) / SCALE, (0 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices[2].Set((223 - object->sprite.spriteOrigin.x) / SCALE, (3 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices[3].Set((1.5f - object->sprite.spriteOrigin.x) / SCALE, (3 - object->sprite.spriteOrigin.y) / SCALE);
 
     // Creates a box shape. Divide your desired width and height by 2.
     b2PolygonShape Shape;
@@ -33,18 +32,18 @@ Platform::Platform(Vec2 position, float32 rotation, float32 density, float32 fri
     FixtureDef.density = density;
     FixtureDef.friction = friction;
     FixtureDef.shape = &Shape;
-    Body->CreateFixture(&FixtureDef);
+    object->body->CreateFixture(&FixtureDef);
 
     //Bottom part
     b2Vec2 vertices2[8];
-    vertices2[0].Set((5 - SpriteOrigin.x) / SCALE, (1 - SpriteOrigin.y) / SCALE);
-    vertices2[1].Set((280 - SpriteOrigin.x) / SCALE, (1 - SpriteOrigin.y) / SCALE);
-    vertices2[2].Set((286 - SpriteOrigin.x) / SCALE, (17 - SpriteOrigin.y) / SCALE);
-    vertices2[3].Set((273 - SpriteOrigin.x) / SCALE, (35 - SpriteOrigin.y) / SCALE);
-    vertices2[4].Set((213 - SpriteOrigin.x) / SCALE, (65 - SpriteOrigin.y) / SCALE);
-    vertices2[5].Set((75 - SpriteOrigin.x) / SCALE, (66 - SpriteOrigin.y) / SCALE);
-    vertices2[6].Set((12 - SpriteOrigin.x) / SCALE, (35 - SpriteOrigin.y) / SCALE);
-    vertices2[7].Set((1 - SpriteOrigin.x) / SCALE, (18 - SpriteOrigin.y) / SCALE);
+    vertices2[0].Set((4 - object->sprite.spriteOrigin.x) / SCALE, (1 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[1].Set((220 - object->sprite.spriteOrigin.x) / SCALE, (1 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[2].Set((225 - object->sprite.spriteOrigin.x) / SCALE, (13 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[3].Set((215 - object->sprite.spriteOrigin.x) / SCALE, (27 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[4].Set((167 - object->sprite.spriteOrigin.x) / SCALE, (51 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[5].Set((59 - object->sprite.spriteOrigin.x) / SCALE, (52 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[6].Set((9 - object->sprite.spriteOrigin.x) / SCALE, (27 - object->sprite.spriteOrigin.y) / SCALE);
+    vertices2[7].Set((1 - object->sprite.spriteOrigin.x) / SCALE, (14 - object->sprite.spriteOrigin.y) / SCALE);
 
     b2PolygonShape Shape2;
     Shape2.Set(vertices2, 8);
@@ -53,7 +52,7 @@ Platform::Platform(Vec2 position, float32 rotation, float32 density, float32 fri
     FixtureDef2.density = density;
     FixtureDef2.friction = 0.0f;
     FixtureDef2.shape = &Shape2;
-    Body->CreateFixture(&FixtureDef2);
+    object->body->CreateFixture(&FixtureDef2);
 }
 
 Platform::~Platform() {}
