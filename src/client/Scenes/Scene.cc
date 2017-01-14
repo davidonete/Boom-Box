@@ -41,7 +41,7 @@ void Scene::AddPlatform(Vec2 position, float32 rotation, float32 density, float3
     Objects.push_back(new Platform(position, rotation, density, friction, world));
 }
 
-void Scene::AddObject(Vec2 position, Vec2 scale, float rotation, ObjectType type, float32 density, float32 friction, const char * texturePath, b2World * world)
+void Scene::AddObject(Vec2 position, Vec2 scale, float rotation, BodyType type, float32 density, float32 friction, const char * texturePath, b2World * world)
 {
     Objects.push_back(new Object(position, scale, rotation, type, density, friction, texturePath, world));
 }

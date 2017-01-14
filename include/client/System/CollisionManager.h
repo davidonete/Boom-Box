@@ -11,8 +11,6 @@
 
 #include <Box2D/Box2D.h>
 
-#include "Game/Object.h"
-
 class CollisionManager : public b2ContactListener
 {
 public:
@@ -20,6 +18,9 @@ public:
     ~CollisionManager();
 
     void BeginContact(b2Contact* contact) override;
+
+private:
+
 };
 
 #endif

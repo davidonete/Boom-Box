@@ -14,7 +14,10 @@ Player::Player(Vec2 position, float32 rotation, float32 density, float32 frictio
         playerMark.spriteOrigin = Vec2(20.0f / 2.0f, 110.0f / 2.0f);
     }
 
+    SetCollisionEnabled(true);
     jumping = false;
+
+    SetType(Type_Player);
 }
 
 Player::~Player() {}
@@ -73,4 +76,12 @@ void Player::Render()
         RenderSprite(&bomb);
     if (isPlayer)
         RenderSprite(&playerMark);
+}
+
+void Player::OnCollisionDetected(Object * otherObject)
+{
+    if (otherObject->GetType() == Type_Ground && jumping)
+        jumping = false;
+    else if (otherObject->GetType() == Type_Player)
+        std::cout << "Player collision\n";
 }

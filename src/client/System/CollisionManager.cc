@@ -1,4 +1,5 @@
 #include "System/CollisionManager.h"
+#include "Game/Object.h"
 
 CollisionManager::CollisionManager() {}
 

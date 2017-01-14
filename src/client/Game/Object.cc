@@ -9,7 +9,7 @@ Object::Object()
     collisionManager = new CollisionManager();
 }
 
-Object::Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, b2World* world)
+Object::Object(Vec2 position, Vec2 scale, float32 rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world)
 {
     GM = GameManager::GetInstance();
     Window = GM->GetWindow();
@@ -39,8 +39,8 @@ Object::Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, flo
     object.sprite.texture.loadFromFile(GameManager::GetImagePath(texturePath));
     object.sprite.spriteOrigin = Vec2(scale.x/2.0f, scale.y/2.0f);
 
-    collisionManager = new CollisionManager();
     object.body->SetUserData(this);
+    collisionManager = new CollisionManager();
     world->SetContactListener(collisionManager);
 }
 
@@ -82,11 +82,6 @@ float32 Object::GetRotation()
 void Object::SetPosition(Vec2 pos)
 {
     object.body->SetTransform(b2Vec2(pos.x / SCALE, pos.y / SCALE), object.body->GetAngle());
-}
-
-void Object::OnCollisionDetected(Object * otherObject)
-{
-
 }
 
 void Object::SetRotaiton(float32 angle)
@@ -156,3 +151,5 @@ void Object::RenderSprite(ObjectSprite* sprite)
 {
     Window->draw(sprite->sprite);
 }
+
+void Object::OnCollisionDetected(Object* otherObject) {}

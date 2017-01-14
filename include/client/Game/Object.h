@@ -37,10 +37,16 @@ struct Vec2
   }
 };
 
+enum BodyType
+{
+    StaticBody,
+    DynamicBody
+};
+
 enum ObjectType
 {
-  StaticBody,
-  DynamicBody
+    Type_Ground,
+    Type_Player
 };
 
 struct ObjectSprite
@@ -59,6 +65,7 @@ struct ObjectInfo
 {
     b2Body* body;
     ObjectSprite sprite;
+    ObjectType type;
 };
 
 class Object
@@ -68,7 +75,7 @@ public:
   ~Object();
 
   //Only for square shapes
-  Object(Vec2 position, Vec2 scale, float32 rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, b2World* world);
+  Object(Vec2 position, Vec2 scale, float32 rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world);
 
   virtual void Init();
   virtual void Input();
@@ -79,13 +86,17 @@ public:
   void SetPosition(Vec2 pos);
 
   virtual void OnCollisionDetected(Object* otherObject);
-  inline bool GetIsCollisionEnabled() { return collisionEnabled; };
+  inline bool GetIsCollisionEnabled() { return collisionEnabled; }
+  inline ObjectType GetType() { return object.type; }
 
 protected:
-  float32 GetRotation();
+  inline void SetType(ObjectType type) { object.type = type; }
+
   ObjectInfo* GetObject() { return &object; }
 
-  inline void SetCollisionEnabled(bool enable) { collisionEnabled = enable; };
+  inline void SetCollisionEnabled(bool enable) { collisionEnabled = enable; }
+
+  float32 GetRotation();
   void SetRotaiton(float32 angle);
 
   void ApplyForce(Vec2 force);
@@ -95,13 +106,13 @@ protected:
   void RenderSprite(ObjectSprite* sprite);
 
   GameManager* GM;
+  CollisionManager* collisionManager;
 
 private:
   ObjectInfo object;
   sf::RenderWindow* Window;
 
   bool collisionEnabled = false;
-  CollisionManager* collisionManager;
 };
 
 #endif

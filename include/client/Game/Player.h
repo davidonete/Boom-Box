@@ -23,6 +23,8 @@ public:
     void Render() override;
 
 private:
+    void OnCollisionDetected(Object* otherObject) override;
+
     ObjectSprite bomb;
     ObjectSprite playerMark;
 

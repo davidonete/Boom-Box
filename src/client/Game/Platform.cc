@@ -53,6 +53,13 @@ Platform::Platform(Vec2 position, float32 rotation, float32 density, float32 fri
     FixtureDef2.friction = 0.0f;
     FixtureDef2.shape = &Shape2;
     object->body->CreateFixture(&FixtureDef2);
+
+    object->body->SetUserData(this);
+    collisionManager = new CollisionManager();
+    world->SetContactListener(collisionManager);
+
+    SetType(Type_Ground);
+    SetCollisionEnabled(false);
 }
 
 Platform::~Platform() {}

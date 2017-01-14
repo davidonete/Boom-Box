@@ -41,7 +41,7 @@ public:
 protected:
     void AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, bool localPlayer);
     void AddPlatform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world);
-    void AddObject(Vec2 position, Vec2 scale, float rotation, ObjectType type, float32 density, float32 friction, const char* texturePath, b2World* world);
+    void AddObject(Vec2 position, Vec2 scale, float rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world);
 
 	std::vector<Object*> Objects;
 	b2World* World;
