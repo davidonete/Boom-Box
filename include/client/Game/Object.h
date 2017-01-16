@@ -84,20 +84,18 @@ public:
 
   Vec2 GetPosition();
   void SetPosition(Vec2 pos);
+  void SetRotaiton(float32 angle);
 
   virtual void OnCollisionDetected(Object* otherObject);
   inline bool GetIsCollisionEnabled() { return collisionEnabled; }
   inline ObjectType GetType() { return object.type; }
 
 protected:
-  inline void SetType(ObjectType type) { object.type = type; }
-
   ObjectInfo* GetObject() { return &object; }
-
-  inline void SetCollisionEnabled(bool enable) { collisionEnabled = enable; }
-
   float32 GetRotation();
-  void SetRotaiton(float32 angle);
+
+  inline void SetType(ObjectType type) { object.type = type; }
+  inline void SetCollisionEnabled(bool enable) { collisionEnabled = enable; }
 
   void ApplyForce(Vec2 force);
   void ApplyImpulse(Vec2 impulse);

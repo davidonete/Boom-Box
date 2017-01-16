@@ -1,6 +1,8 @@
 #include "Scenes/LoginScene.h"
 #include "System/GameManager.h"
 
+#include <functional>
+
 LoginScene::LoginScene() {}
 
 LoginScene::~LoginScene() 
@@ -151,8 +153,10 @@ void LoginScene::OnLoginPressed()
             std::string username = Username->GetText().toAnsiString();
             std::string password = Password->GetText().toAnsiString();
 
+            std::hash<std::string> hashUsername;
+
             std::strcpy(packet.username, username.c_str());
-            std::strcpy(packet.password, password.c_str());
+            std::strcpy(packet.password, std::to_string(hashUsername(password)).c_str());
 
             GM->Network->SendPacket(packet);
 

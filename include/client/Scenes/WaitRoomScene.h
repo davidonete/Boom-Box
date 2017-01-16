@@ -11,6 +11,13 @@
 
 #include "Scenes/Scene.h"
 
+struct PlayerGUIInfo
+{
+    std::string username;
+    unsigned int wincount;
+    bool me;
+};
+
 class WaitRoomScene : public Scene
 {
 public:
@@ -25,7 +32,7 @@ public:
 private:
   void UpdateRoomInfo();
   void UpdateGUI();
-  void AddPlayerInfo(char * username, unsigned int wincount, bool me, unsigned int row);
+  void AddPlayerInfo(const char* username, unsigned int wincount, bool me, unsigned int row);
 
   void InitGUI();
   void OnSendPressed();
@@ -58,6 +65,10 @@ private:
   bool deleteSceneRequest = false;
   bool changeNextSceneRequest = false;
   bool changePreviousSceneRequest = false;
+
+  bool updateGUIRequest = false;
+  std::vector<PlayerGUIInfo> playerGUIInfo;
+
   std::vector<sfg::Label::Ptr> Messages;
 
   sf::Mutex mutex;

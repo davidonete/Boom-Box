@@ -27,6 +27,7 @@ enum ServerMessage
   Server_AcceptedAuthority,
   Server_PlayerConnected,
   Server_PlayerDisconnected,
+  Server_StartBattleScene,
   Server_StartBattle,
 };
 
@@ -34,7 +35,8 @@ enum RequestMessage
 {
   Request_GetPlayersInfo,
   Request_DisconnectPlayer,
-  Request_StartBattle,
+  Request_StartBattleScene,
+  Request_PlayerReady,
 };
 
 enum PacketType
@@ -55,13 +57,13 @@ struct LogInPacket
 
 struct GamePacket
 {
-  unsigned int id;
-  float x, y;
+  unsigned int ID;
+  float x, y, rotation;
 };
 
 struct PlayerInfoPacket
 {
-  unsigned int id;
+  unsigned int ID;
   unsigned int wincount;
   unsigned int authority;
   char username[32];
@@ -69,7 +71,7 @@ struct PlayerInfoPacket
 
 struct ChatPacket
 {
-  unsigned int id;
+  unsigned int ID;
   char message[50];
 };
 
@@ -86,7 +88,7 @@ struct ClientRequestPacket
 
 struct PlayerInformation
 {
-  unsigned int id;
+  unsigned int ID;
   unsigned int wincount;
   bool authority;
   std::string username;
@@ -104,27 +106,28 @@ public:
 
   bool SendPacket(LogInPacket packet);
   bool SendPacket(ChatPacket packet);
-  bool SendPacket(ConnectionType type, GamePacket packet);
-  bool SendPacket(ConnectionType type, ClientRequestPacket packet);
+  bool SendPacket(ClientRequestPacket packet);
+  bool SendPacket(GamePacket packet);
 
   bool ReceivePacket(ConnectionType Type, char buffer[]);
   bool GetPacketFromBytes(char bytes[], ChatPacket &packet);
   bool GetPacketFromBytes(char bytes[], ServerMessagePacket &packet);
   bool GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
   bool GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet);
+  bool GetPacketFromBytes(char bytes[], GamePacket &packet);
 
   static PacketType GetPacketType(char bytes[]);
 
   static inline ServerMessage GetServerMessage(unsigned int code) { return static_cast<ServerMessage>(code); }
-  static inline unsigned int GetCodeFromMessage(RequestMessage msg) { return static_cast<unsigned int>(msg); }
+  static inline unsigned int GetCodeFromRequest(RequestMessage msg) { return static_cast<unsigned int>(msg); }
 
   /** Gets and sets if the current client is the authority of the game. */
   inline void SetAuthority(bool authority) { client.authority = authority; }
   inline bool IsAuthority() { return client.authority; }
 
   /** Gets/Sets the id used by the server to identify this client. */
-  inline unsigned int GetClientID() { return client.id; }
-  inline void SetClientID(unsigned int id) { client.id = id; }
+  inline unsigned int GetClientID() { return client.ID; }
+  inline void SetClientID(unsigned int id) { client.ID = id; }
   inline std::string GetUsername() { return client.username; }
   inline void SetUsername(std::string username) { client.username = username; }
 

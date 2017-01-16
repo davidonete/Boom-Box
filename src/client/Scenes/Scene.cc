@@ -11,8 +11,11 @@ void Scene::Init() {}
 
 void Scene::Input()
 {
-	for (unsigned int i = 0; i < Objects.size(); i++)
-		Objects[i]->Input();
+    if (windowFocus)
+    {
+        for (unsigned int i = 0; i < Objects.size(); i++)
+            Objects[i]->Input();
+    }
 }
 
 void Scene::Update()
@@ -30,9 +33,9 @@ void Scene::Render()
 	World->Step(1 / 60.0f, 8, 3);
 }
 
-void Scene::AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, bool localPlayer)
+void Scene::AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID)
 {
-    players.push_back(new Player(position, rotation, density, friction, world, localPlayer));
+    players.push_back(new Player(position, rotation, density, friction, world, ID));
     Objects.push_back(players.back());
 }
 

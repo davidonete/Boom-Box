@@ -39,7 +39,7 @@ public:
 	inline b2World* GetWorld() { return World; }
 
 protected:
-    void AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, bool localPlayer);
+    void AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID);
     void AddPlatform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world);
     void AddObject(Vec2 position, Vec2 scale, float rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world);
 
@@ -47,6 +47,8 @@ protected:
 	b2World* World;
 
     std::vector<Player*> players;
+
+    bool windowFocus = false;
 
 private:
 

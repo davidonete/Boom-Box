@@ -23,7 +23,6 @@ public class StateObject
 public class UdpStateObject
 {
     public IPEndPoint endPoint = null;
-
     public UdpClient client = null;
 }
 
@@ -31,7 +30,7 @@ public class UdpStateObject
 public struct ClientGamePacket
 {
     public uint ID;
-    public float x, y;
+    public float x, y, rotation;
 };
 
 [StructLayout(LayoutKind.Sequential)]
@@ -87,7 +86,9 @@ public struct PlayerInfo
     public uint winCount;
     public bool authority;
     public string username;
+    public bool ready;
     public Socket handler;
+    public IPEndPoint ep;
 }
 
 public enum ServerState
@@ -106,6 +107,7 @@ public enum ServerMessage
     Server_AcceptedAuthority,
     Server_PlayerConnected,
     Server_PlayerDisconnected,
+    Server_StartBattleScene,
     Server_StartBattle,
 }
 
@@ -113,7 +115,8 @@ public enum ClientRequest
 {
     Request_GetPlayersInfo,
     Request_DisconnectPlayer,
-    Request_StartBattle,
+    Request_StartBattleScene,
+    Request_PlayerReady
 }
 
 public enum ConnectionType
@@ -130,6 +133,7 @@ public class Server
     // Thread signal.
     public static ManualResetEvent allDone = new ManualResetEvent(false);
     public static bool messageReceived = false;
+    public static bool messageSent = false;
 
     public Server() {}
 
@@ -281,6 +285,7 @@ public class Server
 
                 // Wait until a connection is made before continuing.
                 allDone.WaitOne();
+                Thread.Sleep(100);
             }
         }
         catch (Exception e)
@@ -325,7 +330,6 @@ public class Server
 
         if (bytesRead > 0)
         {
-            //Console.WriteLine("Received {0} bytes from {1}:{2}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
             if (serverState == ServerState.WaitRoom)
             {
                 //If the packet is a LogInPacket
@@ -336,57 +340,39 @@ public class Server
                 else if (bytesRead == ChatPacketSize)
                     ChatHandler(state, handler);
                 else
-                    RequestHandler(state, handler);
+                    RequestHandler(bytesRead, state, handler);
             }
             else if (serverState == ServerState.Battle)
-            {
-                //Refuse all incoming TCP messages and requests from clients
-                ServerMessagePacket packet;
-                packet.msg = (uint)ServerMessage.Server_Denied;
-                Send(handler, GetBytesFromPacket(packet));
-            }
-
-            /*
-            // There  might be more data, so store the data received so far.
-            state.sb.Append(Encoding.ASCII.GetString(
-                state.buffer, 0, bytesRead));
-
-            // Check for end-of-file tag. If it is not there, read 
-            // more data.
-            content = state.sb.ToString();
-            if (content.IndexOf("\0") > -1)
-            {
-                // All the data has been read from the 
-                // client. Display it on the console.
-                Console.WriteLine("Received {0} bytes from {1}:{2}: {3}", content.Length, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, content);
-                //Console.WriteLine("Read {0} bytes from socket. \nData : {1}", content.Length, content);
-                // Echo the data back to the client.
-                Send(handler, content);
-            }
-            else
-            {
-                // Not all data received. Get more. ??????
-                handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReceiveCallbackTCP), state);
-            }
-            */
+                RequestHandler(bytesRead, state, handler);
         }
     }
 
-    public static void RequestHandler(StateObject state, Socket handler)
+    public static void RequestHandler(int bytesRead, StateObject state, Socket handler)
     {
-        ClientRequestPacket dataReceived = GetRequestPacketFromBytes(state.buffer);
+        int RequestSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientRequestPacket));
+        if (bytesRead == RequestSize)
+        {
+            ClientRequestPacket dataReceived = GetRequestPacketFromBytes(state.buffer);
 
-        if (!CheckPlayerLogged(dataReceived.ID))
-            return;
+            if (!CheckPlayerLogged(dataReceived.ID))
+                return;
 
-        ClientRequest request = (ClientRequest)dataReceived.request;
-        if (request == ClientRequest.Request_GetPlayersInfo)
-            GetPlayersInfoHandler(handler, dataReceived.ID);
-        else if (request == ClientRequest.Request_DisconnectPlayer)
-            LogOutHandler(handler, dataReceived.ID);
-        else if (request == ClientRequest.Request_StartBattle)
-            StartBattleHandler(handler, dataReceived.ID);
+            ClientRequest request = (ClientRequest)dataReceived.request;
+            if (request == ClientRequest.Request_GetPlayersInfo)
+                GetPlayersInfoHandler(handler, dataReceived.ID);
+            else if (request == ClientRequest.Request_DisconnectPlayer)
+                LogOutHandler(handler, dataReceived.ID);
+            else if (request == ClientRequest.Request_StartBattleScene)
+                StartBattleSceneHandler(handler, dataReceived.ID);
+            else if (request == ClientRequest.Request_PlayerReady)
+                StartBattleHandler(handler, dataReceived.ID);
+        }
+        else
+        {
+            ServerMessagePacket packet;
+            packet.msg = (uint)ServerMessage.Server_Denied;
+            SendTCP(handler, GetBytesFromPacket(packet));
+        }
     }
 
     public static void ChatHandler(StateObject state, Socket handler)
@@ -403,14 +389,15 @@ public class Server
         Console.WriteLine("Received 'Log In' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
 
         ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
-        //Console.WriteLine("Received {0} bytes from {1}:{2}\nUser:{3}, Pass:{4}", bytesRead, ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port, dataReceived.username, dataReceived.password);
 
         //Confirm log in credentials through database
         SQLiteConnection db_connection = new SQLiteConnection("Data Source=" + System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True");
         db_connection.Open();
 
-        string query = "select * from Users";
+        string query = "select * from Users where USERNAME = @username and PASSWORD = @password";
         SQLiteCommand command = new SQLiteCommand(query, db_connection);
+        command.Parameters.AddWithValue("@username", dataReceived.username);
+        command.Parameters.AddWithValue("@password", dataReceived.password);
 
         SQLiteDataReader reader = command.ExecuteReader();
 
@@ -426,17 +413,12 @@ public class Server
                 if ((string)reader["USERNAME"] == dataReceived.username && (string)reader["PASSWORD"] == dataReceived.password)
                 {
                     uint id = Convert.ToUInt32(reader["ID"]);
+
                     //Check if that user has already logged in
-                    if (players.Count > 0)
-                    {
-                        for (int i = 0; i < players.Count; i++)
-                        {
-                            if (players[i].ID == id)
-                            {
-                                packet.msg = (uint)ServerMessage.Server_Denied_AlreadyLogged;
-                                break;
-                            }
-                        }
+                    if(CheckPlayerLogged(id))
+                    { 
+                        packet.msg = (uint)ServerMessage.Server_Denied_AlreadyLogged;
+                        break;
                     }
 
                     if (packet.msg != (uint)ServerMessage.Server_Denied_AlreadyLogged)
@@ -446,7 +428,9 @@ public class Server
                         newPlayer.handler = handler;
                         newPlayer.authority = false;
                         newPlayer.username = dataReceived.username;
+                        newPlayer.ready = false;
                         newPlayer.winCount = Convert.ToUInt32(reader["WINCOUNT"]);
+                        newPlayer.ep = null;
 
                         packet.ID = id;
                         packet.msg = (uint)ServerMessage.Server_Accepted;
@@ -469,28 +453,21 @@ public class Server
             }
         }
         db_connection.Close();
-        Send(handler, GetBytesFromPacket(packet));
+        SendTCP(handler, GetBytesFromPacket(packet));
     }
 
     public static void LogOutHandler(Socket handler, uint ID)
     {
         Console.WriteLine("Received 'Log Out' Message. Players: {0}", players.Count - 1);
 
-        for(int i = 0; i < players.Count; i++)
+        for (int i = 0; i < players.Count; i++)
         {
-            if(players[i].ID == ID)
+            if (players[i].ID == ID)
             {
                 if (players[i].authority && players.Count > 1)
                 {
-                    //Change the authority to an other player
-                    PlayerInfo modifiedPlayer;
-                    modifiedPlayer.ID = players[i + 1].ID;
-                    modifiedPlayer.username = players[i + 1].username;
-                    modifiedPlayer.handler = players[i + 1].handler;
-                    modifiedPlayer.winCount = players[i + 1].winCount;
-                    modifiedPlayer.authority = true;
-
-                    players[i + 1] = modifiedPlayer; 
+                    //Change the authority to another player
+                    players[i + 1] = SetPlayerAuthority(players[i + 1], true);
                 }
 
                 try
@@ -498,17 +475,20 @@ public class Server
                     handler.Shutdown(SocketShutdown.Both);
                     handler.Close();
                 }
-                catch (Exception e) {}
+                catch (Exception e) { }
                 players.Remove(players[i]);
 
                 //Broadcast the message to the rest of the players
                 ServerMessagePacket packet;
                 packet.msg = (uint)ServerMessage.Server_PlayerDisconnected;
                 Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
-
-                break;
             }
+            else
+                players[i] = SetPlayerReady(players[i], false);
         }
+
+        if (serverState == ServerState.Battle)
+            serverState = ServerState.WaitRoom;
     }
 
     public static void GetPlayersInfoHandler(Socket handler, uint ID)
@@ -536,14 +516,14 @@ public class Server
                 packet.winCount = players[i].winCount;
                 packet.authority = Convert.ToUInt32(players[i].authority);
                 packet.username = players[i].username;
-                Send(handler, GetBytesFromPacket(packet));
+                SendTCP(handler, GetBytesFromPacket(packet));
             }
         }
 
-        Send(handler, GetBytesFromPacket(lastPacket));
+        SendTCP(handler, GetBytesFromPacket(lastPacket));
     }
     
-    public static void StartBattleHandler(Socket handler, uint ID)
+    public static void StartBattleSceneHandler(Socket handler, uint ID)
     {
         Console.WriteLine("Received 'Start Battle' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
         ServerMessagePacket packet;
@@ -551,29 +531,56 @@ public class Server
         {
             if (players.Count > 1)
             {
-                packet.msg = (uint)ServerMessage.Server_StartBattle;
+                packet.msg = (uint)ServerMessage.Server_StartBattleScene;
                 Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
                 serverState = ServerState.Battle;
             }
             else
             {
                 packet.msg = (uint)ServerMessage.Server_Denied_NotEnoughPlayers;
-                Send(handler, GetBytesFromPacket(packet));
+                SendTCP(handler, GetBytesFromPacket(packet));
             }
         }
         else
         {
             packet.msg = (uint)ServerMessage.Server_Denied_NotAuthority;
-            Send(handler, GetBytesFromPacket(packet));
+            SendTCP(handler, GetBytesFromPacket(packet));
+        }
+    }
+
+    public static void StartBattleHandler(Socket handler, uint ID)
+    {
+        Console.WriteLine("Received 'Player Ready' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+
+        uint playersReady = 0;
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].ID == ID)
+            {
+                players[i] = SetPlayerReady(players[i], true);
+                playersReady++;
+            }
+            else if (players[i].ready)
+                playersReady++;
+        }
+
+        if(playersReady == players.Count)
+        {
+            ServerMessagePacket packet;
+            packet.msg = (uint)ServerMessage.Server_StartBattle;
+            Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
         }
     }
 
     public static bool CheckPlayerLogged(uint ID)
     {
-        for(int i = 0; i < players.Count; i++)
+        if (players.Count > 0)
         {
-            if (players[i].ID == ID)
-                return true;
+            for (int i = 0; i < players.Count; i++)
+            {
+                if (players[i].ID == ID)
+                    return true;
+            }
         }
         return false;
     }
@@ -588,20 +595,64 @@ public class Server
         return false;
     }
 
-    public static void Broadcast(ConnectionType type, byte[] data)
+    public static PlayerInfo SetPlayerAuthority(PlayerInfo player, bool authority)
+    {
+        PlayerInfo modifiedPlayer;
+        modifiedPlayer.ID = player.ID;
+        modifiedPlayer.username = player.username;
+        modifiedPlayer.handler = player.handler;
+        modifiedPlayer.winCount = player.winCount;
+        modifiedPlayer.authority = authority;
+        modifiedPlayer.ready = player.ready;
+        modifiedPlayer.ep = player.ep;
+
+        return modifiedPlayer;
+    }
+
+    public static PlayerInfo SetPlayerReady(PlayerInfo player, bool ready)
+    {
+        PlayerInfo modifiedPlayer;
+        modifiedPlayer.ID = player.ID;
+        modifiedPlayer.username = player.username;
+        modifiedPlayer.handler = player.handler;
+        modifiedPlayer.winCount = player.winCount;
+        modifiedPlayer.authority = player.authority;
+        modifiedPlayer.ready = ready;
+        modifiedPlayer.ep = player.ep;
+
+        return modifiedPlayer;
+    }
+
+    public static PlayerInfo SetPlayerEP(PlayerInfo player, IPEndPoint ep)
+    {
+        PlayerInfo modifiedPlayer;
+        modifiedPlayer.ID = player.ID;
+        modifiedPlayer.username = player.username;
+        modifiedPlayer.handler = player.handler;
+        modifiedPlayer.winCount = player.winCount;
+        modifiedPlayer.authority = player.authority;
+        modifiedPlayer.ready = player.ready;
+        modifiedPlayer.ep = ep;
+
+        return modifiedPlayer;
+    }
+
+    public static void Broadcast(ConnectionType type, byte[] data)  
     {
         if(type == ConnectionType.TCP)
         {
             for (int i = 0; i < players.Count; i++)
-                Send(players[i].handler, data);
+                SendTCP(players[i].handler, data);
         }
         else
         {
-
+            for (int i = 0; i < players.Count; i++)
+                if(players[i].ep != null)
+                    SendUDP(players[i].ep, data);
         }
     }
 
-    private static void Send(Socket handler, String data)
+    private static void SendTCP(Socket handler, String data)
     {
         // Convert the string data to byte data using ASCII encoding.
         byte[] byteData = Encoding.ASCII.GetBytes(data);
@@ -611,7 +662,7 @@ public class Server
             new AsyncCallback(SendCallbackTCP), handler);
     }
 
-    private static void Send(Socket handler, byte[] byteData)
+    private static void SendTCP(Socket handler, byte[] byteData)
     {
         // Begin sending the data to the remote device.
         handler.BeginSend(byteData, 0, byteData.Length, 0,
@@ -662,7 +713,7 @@ public class Server
             while (!messageReceived)
             {
                 // Do something 
-                //Console.WriteLine("asdasdas");
+                //Thread.Sleep(16);
             }
         }
     }
@@ -671,20 +722,62 @@ public class Server
     {
         UdpClient Client = (UdpClient)((UdpStateObject)(ar.AsyncState)).client;
         IPEndPoint EndPoint = (IPEndPoint)((UdpStateObject)(ar.AsyncState)).endPoint;
-        Byte[] bytesReceived = Client.EndReceive(ar, ref EndPoint);
 
-        String content = Encoding.ASCII.GetString(bytesReceived);
+        Byte[] bytesReceived = Client.EndReceive(ar, ref EndPoint); 
+        int bytesRead = bytesReceived.Length;
 
-        Console.WriteLine("Received {0} bytes from {1}:{2} {3}", bytesReceived.Length, EndPoint.Address, EndPoint.Port, content);
+        if (bytesRead > 0)
+        {
+            if (serverState == ServerState.Battle)
+            {
+                int GamePacketSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientGamePacket));
+                if (bytesRead == GamePacketSize)
+                    GameUpdateHandler(EndPoint, bytesReceived);
 
-        messageReceived = true;
+                //Console.WriteLine("Received {0} bytes from {1}:{2} {3}", bytesReceived.Length, EndPoint.Address, EndPoint.Port, content);
+                messageReceived = true;
+            }
+        }
+    }
+
+    public static void GameUpdateHandler(IPEndPoint ep, byte[] bytesReceived)
+    {
+        Console.WriteLine("Received 'Game Update' Packet from {0}:{1}", bytesReceived.Length, ep.Address, ep.Port);
+        ClientGamePacket packet = GetGamePacketFromBytes(bytesReceived);
+
+        for(int i = 0; i < players.Count; i++)
+        {
+            if (packet.ID == players[i].ID)
+            {
+                if (players[i].ep == null)
+                    players[i] = SetPlayerEP(players[i], ep);
+                break;
+            }
+        }
+
+        if(CheckPlayerLogged(packet.ID))
+            Broadcast(ConnectionType.UDP, GetBytesFromPacket(packet));
+    }
+
+    private static void SendUDP(IPEndPoint ep, byte[] data)
+    {
+        messageSent = false;
+        UdpClient client = new UdpClient();
+        client.Connect(ep);
+
+        client.BeginSend(data, data.Length, new AsyncCallback(SendCallbackUDP), client);
+
+        while(!messageSent)
+        {
+            //Thread.Sleep(100);
+        }    
     }
 
     private static void SendCallbackUDP(IAsyncResult ar)    
     {
         UdpClient client = (UdpClient)ar.AsyncState;
-
-        Console.WriteLine("bytes sent: {0}", client.EndSend(ar));
+        Console.WriteLine("Sent {0} bytes to client.", client.EndSend(ar));
+        messageSent = true;
     }
 
     private static void Init()
@@ -696,9 +789,9 @@ public class Server
     {
         Init();
 
-        Thread UDPThread = new Thread(StartListeningUDP);
-        UDPThread.Start();
-        StartListeningTCP();
+        Thread TCPThread = new Thread(StartListeningTCP);
+        TCPThread.Start();
+        StartListeningUDP();
 
         return 0;
     }

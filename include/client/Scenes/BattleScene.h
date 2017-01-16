@@ -23,10 +23,21 @@ private:
   void Update() override;
   void Render() override;
 
+  void GetServerTCPPackets();
+  void GetServerUDPPackets();
+
+  void UpdatePlayers();
+
   sf::RenderWindow* RenderWindow;
 
   bool changeSceneRequest = false;
   bool deleteSceneRequest = false;
+
+  sf::Mutex mutex;
+  sf::Thread* serverReceiveTCPThread;
+  sf::Thread* serverReceiveUDPThread;
+
+  std::vector<GamePacket> lastPacketsReceived;
 };
 
 #endif

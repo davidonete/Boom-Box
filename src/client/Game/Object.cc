@@ -42,6 +42,9 @@ Object::Object(Vec2 position, Vec2 scale, float32 rotation, BodyType type, float
     object.body->SetUserData(this);
     collisionManager = new CollisionManager();
     world->SetContactListener(collisionManager);
+
+    SetType(Type_Ground);
+    SetCollisionEnabled(false);
 }
 
 Object::~Object() 

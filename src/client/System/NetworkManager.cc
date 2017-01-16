@@ -13,7 +13,7 @@ void NetworkManager::Init()
 {
     //tcpSocket.setBlocking(false);
     client.authority = false;
-    client.id = 0;
+    client.ID = 0;
 }
 
 bool NetworkManager::Connect(ConnectionType type)
@@ -31,7 +31,7 @@ bool NetworkManager::Connect(ConnectionType type)
     else
     {
         //UDP does not need a previous connection for sending
-        udpSocket.setBlocking(false);
+        //udpSocket.setBlocking(false);
         //Bind to a local port to receive from server
         udpSocket.bind(sf::Socket::AnyPort);
         return true;
@@ -46,42 +46,33 @@ void NetworkManager::Disconnect(ConnectionType type)
         udpSocket.unbind();
 }
 
-bool NetworkManager::SendPacket(ConnectionType type, GamePacket packet)
+bool NetworkManager::SendPacket(GamePacket packet)
 {
-    //TO DO
-    if (type == TCP)
-    {
-        std::cout << "Error sending TCP packet...";
-        return false;
-    }
-    else
+    const int size = sizeof(packet);
+    char buffer[size];
+    memcpy(buffer, &packet, size);
+
+    if (udpSocket.send(buffer, size, IPADDRESS, PORT) != sf::Socket::Done)
     {
         std::cout << "Error sending UDP packet...";
         return false;
     }
+    return true;
 }
 
-bool NetworkManager::SendPacket(ConnectionType type, ClientRequestPacket packet)
+bool NetworkManager::SendPacket(ClientRequestPacket packet)
 {
     // Create bytes to send
     const int size = sizeof(packet);
     char buffer[size];
     memcpy(buffer, &packet, size);
 
-    if (type == TCP)
+    if (tcpSocket.send(buffer, size) != sf::Socket::Done)
     {
-        if (tcpSocket.send(buffer, size) != sf::Socket::Done)
-        {
-            std::cout << "Error sending TCP packet...";
-            return false;
-        }
-        return true;
-    }
-    else
-    {
-        std::cout << "Error sending UDP packet...";
+        std::cout << "Error sending TCP packet...";
         return false;
     }
+    return true;
 }
 
 bool NetworkManager::SendPacket(LogInPacket packet)
@@ -119,7 +110,7 @@ bool NetworkManager::SendPacket(ChatPacket packet)
 bool NetworkManager::ReceivePacket(ConnectionType Type, char buffer[])
 {
     //Prepare buffer to receive
-    const int size = 128;
+    const int size = 256;
     std::size_t Received;
 
     if (Type == TCP)
@@ -134,8 +125,15 @@ bool NetworkManager::ReceivePacket(ConnectionType Type, char buffer[])
     }
     else
     {
-        std::cout << "Error receiving UDP packet...";
-        return false;
+        sf::IpAddress Sender;
+        unsigned short Port;
+
+        if (udpSocket.receive(buffer, size, Received, Sender, Port) != sf::Socket::Done)
+        {
+            std::cout << "Error receiving UDP packet...";
+            return false;
+        }
+        return true;
     }
 }
 
@@ -155,8 +153,8 @@ void NetworkManager::LogOut()
 {
     ClientRequestPacket packet;
     packet.ID = GetClientID();
-    packet.msg = GetCodeFromMessage(Request_DisconnectPlayer);
-    SendPacket(TCP, packet);
+    packet.msg = GetCodeFromRequest(Request_DisconnectPlayer);
+    SendPacket(packet);
 }
 
 PacketType NetworkManager::GetPacketType(char bytes[])
@@ -180,6 +178,16 @@ PacketType NetworkManager::GetPacketType(char bytes[])
 bool NetworkManager::GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet)
 {
     if(GetPacketType(bytes) == Type_PlayerInfoPacket)
+    {
+        memcpy(&packet, bytes, sizeof(packet));
+        return true;
+    }
+    return false;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], GamePacket &packet)
+{
+    if (GetPacketType(bytes) == Type_GamePacket)
     {
         memcpy(&packet, bytes, sizeof(packet));
         return true;
@@ -216,6 +224,7 @@ bool NetworkManager::GetPacketFromBytes(char bytes[], ClientRequestPacket &packe
     }
     return false;
 }
+
 
 //http://www.sfml-dev.org/tutorials/1.6/network-sockets.php
 /*

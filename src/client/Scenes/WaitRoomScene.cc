@@ -159,8 +159,17 @@ void WaitRoomScene::Update()
 
 void WaitRoomScene::Render()
 {
-    RenderWindow->draw(sprite);
-    GUI.Display(*RenderWindow);
+    try
+    {
+        mutex.lock();
+        RenderWindow->draw(sprite);
+        GUI.Display(*RenderWindow);
+        mutex.unlock();
+    }
+    catch (int e) { e = 0; }
+
+    if (updateGUIRequest)
+        UpdateGUI();
 
     if (deleteSceneRequest || changeNextSceneRequest || changePreviousSceneRequest)
     {
@@ -187,7 +196,7 @@ void WaitRoomScene::OnSendPressed()
         buffer << "[" << username << "]: " << text;
 
         ChatPacket packet;
-        packet.id = GM->Network->GetClientID();
+        packet.ID = GM->Network->GetClientID();
         std::strcpy(packet.message, buffer.str().c_str());
         GM->Network->SendPacket(packet);
     }
@@ -207,9 +216,9 @@ void WaitRoomScene::OnStartGamePressed()
 
     ClientRequestPacket packet;
     packet.ID = Network->GetClientID();
-    packet.msg = Network->GetCodeFromMessage(Request_StartBattle);
+    packet.msg = Network->GetCodeFromRequest(Request_StartBattleScene);
 
-    Network->SendPacket(TCP, packet);
+    Network->SendPacket(packet);
 }
 
 void WaitRoomScene::GetServerPackets()
@@ -235,7 +244,7 @@ void WaitRoomScene::GetServerPackets()
             ServerMessage msg = Network->GetServerMessage(packet.msg);
             if (msg == Server_PlayerConnected || msg == Server_PlayerDisconnected)
                 UpdateRoomInfo();
-            else if (msg == Server_StartBattle)
+            else if (msg == Server_StartBattleScene)
                 changeNextSceneRequest = true;
             else if (msg == Server_Denied_NotEnoughPlayers)
             {
@@ -268,20 +277,21 @@ void WaitRoomScene::PrintMessage(std::string message)
 
 void WaitRoomScene::UpdateRoomInfo()
 {
-    UsersWindowBox->RemoveAll();
+    playerGUIInfo.clear();
     NetworkManager* Network = GameManager::GetInstance()->Network;
 
     ClientRequestPacket request;
     request.ID = Network->GetClientID();
-    request.msg = Network->GetCodeFromMessage(Request_GetPlayersInfo);
-    Network->SendPacket(TCP, request);
+    request.msg = Network->GetCodeFromRequest(Request_GetPlayersInfo);
+    Network->SendPacket(request);
 
     const int packetSize = sizeof(PlayerInfoPacket);
     bool allInfoReceived = false;
     int numPlayers = 0;
     while (!allInfoReceived)
     {
-        char buffer[128];
+        char buffer[256];
+        memset(buffer, -52, 256);
         Network->ReceivePacket(TCP, buffer);
 
         //If receiving multiple packets at once
@@ -298,12 +308,16 @@ void WaitRoomScene::UpdateRoomInfo()
                 if (Network->GetPacketType(bufferPart) == Type_PlayerInfoPacket)
                 {
                     bool me = false;
-                    if (player.id == Network->GetClientID())
+                    if (player.ID == Network->GetClientID())
                     {
                         Network->SetAuthority(player.authority);
                         me = true;
                     }
-                    AddPlayerInfo(player.username, player.wincount, me, numPlayers);
+                    PlayerGUIInfo newPlayer;
+                    newPlayer.username = player.username;
+                    newPlayer.wincount = player.wincount;
+                    newPlayer.me = me;
+                    playerGUIInfo.push_back(newPlayer);
                     numPlayers++;
                 }
             }
@@ -316,28 +330,37 @@ void WaitRoomScene::UpdateRoomInfo()
                 PlayerInfoPacket player;
                 bool me = false;
                 Network->GetPacketFromBytes(buffer, player);
-                if (player.id == Network->GetClientID())
+                if (player.ID == Network->GetClientID())
                 {
                     Network->SetAuthority(player.authority);
                     allInfoReceived = true;
                     me = true;
                 }
 
-                AddPlayerInfo(player.username, player.wincount, me, numPlayers);
+                PlayerGUIInfo newPlayer;
+                newPlayer.username = player.username;
+                newPlayer.wincount = player.wincount;
+                newPlayer.me = me;
+                playerGUIInfo.push_back(newPlayer);
                 numPlayers++;
             }
         }
     }
 
-    std::stringstream text;
-    text << "Users in the room: " << numPlayers;
-    UserText->SetText(text.str());
-
-    UpdateGUI();
+    updateGUIRequest = true;
 }
 
 void WaitRoomScene::UpdateGUI()
 {
+    UsersWindowBox->RemoveAll();
+
+    for (int i = 0; i < playerGUIInfo.size(); i++)
+        AddPlayerInfo(playerGUIInfo[i].username.c_str(), playerGUIInfo[i].wincount, playerGUIInfo[i].me, i);
+
+    std::stringstream text;
+    text << "Users in the room: " << playerGUIInfo.size();
+    UserText->SetText(text.str());
+
     UserButtonTable->RemoveAll();
 
     sfg::Button::Ptr LogOut = sfg::Button::Create("Log Out");
@@ -362,11 +385,12 @@ void WaitRoomScene::UpdateGUI()
         UserServerMessage->SetText("Waiting for the host to start...");
         UserButtonTable->Attach(LogOut, sf::Rect<sf::Uint32>(1, 0, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
     }
+
+    updateGUIRequest = false;
 }
 
-void WaitRoomScene::AddPlayerInfo(char* username, unsigned int wincount, bool me, unsigned int row)
+void WaitRoomScene::AddPlayerInfo(const char* username, unsigned int wincount, bool me, unsigned int row)
 {
-    mutex.lock();
     std::stringstream text;
     text << " Wins: " << wincount;
 
@@ -382,5 +406,4 @@ void WaitRoomScene::AddPlayerInfo(char* username, unsigned int wincount, bool me
 
     UsersWindowBox->Attach(user, sf::Rect<sf::Uint32>(0, row, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
     UsersWindowBox->Attach(wins, sf::Rect<sf::Uint32>(1, row, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(30.0f, 0.0f));
-    mutex.unlock();
 }
