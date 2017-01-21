@@ -1,4 +1,5 @@
 .*
 !/.gitignore
 project/vs2015
-bin/Windows
+priject/xcode/Intermediates
+bin/
