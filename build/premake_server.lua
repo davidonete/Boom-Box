@@ -56,5 +56,5 @@ project "multiplayer_server"
 	configuration "windows" 
 		os.mkdir("../bin/Windows/Release")
 		os.copyfile("../lib/Release/System.Data.SQLite.dll", "../bin/Windows/Release/System.Data.SQLite.dll")
-		os.copyfile("../data/database/database.db", "../bin/Windows/Release/database.db")
+		os.copyfile("../data/database/database_win.db", "../bin/Windows/Release/database.db")
 	--TODO: MacOSX configuration
