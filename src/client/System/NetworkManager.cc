@@ -20,7 +20,8 @@ bool NetworkManager::Connect(ConnectionType type)
 {
     if (type == TCP)
     {
-        if (tcpSocket.connect(IPADDRESS, PORT) == sf::Socket::Done)
+        sf::Socket::Status socket = tcpSocket.connect(IPADDRESS, PORT);
+        if (socket == sf::Socket::Done)
         {
             std::cout << "Connected.\n";
             return true;

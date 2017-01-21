@@ -34,6 +34,7 @@ private:
 
   bool changeSceneRequest = false;
   bool deleteSceneRequest = false;
+  bool alreadyConnected = false;
 };
 
 #endif

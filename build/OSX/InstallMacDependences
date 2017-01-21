@@ -1,0 +1,30 @@
+#!/bin/bash   
+
+cd "$(dirname "$0")"
+
+mkdir ../../bin/OSX/Debug/data
+mkdir ~/lib
+
+cp -R ../../data/images ../../bin/OSX/Debug/data
+cp -R ../../data/fonts ../../bin/OSX/Debug/data
+cp RunClient ../../bin/OSX/Debug
+cp RunServer ../../bin/OSX/Debug
+cp ../../data/database/database_osx.db ../../bin/OSX/Debug/data/database.db
+cp ../../deps/Box2D/libBox2D.2.3.0.dylib ~/lib
+cp ../../deps/Box2D/libBox2D.a ~/lib
+
+cd ~
+
+curl -L -o 'homebrew.tar.gz' 'https://github.com/Homebrew/homebrew/tarball/master'
+gunzip -c homebrew.tar.gz | tar xopf -
+
+rm homebrew.tar.gz
+mv ~/Homebrew-legacy-homebrew-5a9e19f ~/homebrew
+
+mkdir ~/bin
+ln -s ~/homebrew/bin/brew ~/bin/brew
+
+./bin/brew update
+./bin/brew upgrade
+./bin/brew install sfml
+

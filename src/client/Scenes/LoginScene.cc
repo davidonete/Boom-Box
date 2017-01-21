@@ -37,6 +37,11 @@ void LoginScene::Init()
 
 void LoginScene::InitGUI()
 {
+    std::shared_ptr<sf::Font> my_font = std::make_shared<sf::Font>();
+    my_font->loadFromFile( "data/fonts/arial.ttf" );
+    sfg::Context::Get().GetEngine().GetResourceManager().SetDefaultFont( my_font );
+    sfg::Context::Get().GetEngine().SetProperty( "*", "FontName",  "data/fonts/arial.ttf" );
+    
     Window = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
 
     Username = sfg::Entry::Create();
@@ -147,7 +152,9 @@ void LoginScene::OnLoginPressed()
     else
     {
         GameManager* GM = GameManager::GetInstance();
-        if (GM->Network->Connect(TCP))
+        if(!alreadyConnected)
+            alreadyConnected = GM->Network->Connect(TCP);
+        if (alreadyConnected)
         {
             LogInPacket packet;
             std::string username = Username->GetText().toAnsiString();
