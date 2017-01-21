@@ -1,4 +1,4 @@
 .*
 !/.gitignore
-project/
+project/vs2015
 bin/Windows
