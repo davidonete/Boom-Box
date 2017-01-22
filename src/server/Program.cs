@@ -1,10 +1,12 @@
-﻿using System;
+﻿//#define MonoCS
+
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
-#if __MonoCS__
+#if MonoCS
     using SQLiteCommand = Mono.Data.Sqlite.SqliteCommand;
     using SQLiteConnection = Mono.Data.Sqlite.SqliteConnection;
     using SQLiteDataReader = Mono.Data.Sqlite.SqliteDataReader;
