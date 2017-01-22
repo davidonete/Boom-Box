@@ -49,7 +49,11 @@ Object::Object(Vec2 position, Vec2 scale, float32 rotation, BodyType type, float
 
 Object::~Object() 
 {
-    delete collisionManager;
+    std::cout << "Destroyed parent";
+    //SetPosition(Vec2(-9000.0f, -9000.0f));
+    SetCollisionEnabled(false);
+    object.body->GetWorld()->DestroyBody(object.body);
+    object.body = nullptr;
 }
 
 void Object::Init() {}

@@ -115,6 +115,7 @@ public struct PlayerInfo
     public string username;
     public bool ready;
     public uint bomb;
+    public bool dead;
     public Socket handler;
     public IPEndPoint ep;
 }
@@ -138,6 +139,7 @@ public enum ServerMessage
     Server_StartBattleScene,
     Server_StartBattle,
     Server_BombPossession,
+    Server_PlayerDead,
 }
 
 public enum ClientRequest
@@ -145,7 +147,9 @@ public enum ClientRequest
     Request_GetPlayersInfo,
     Request_DisconnectPlayer,
     Request_StartBattleScene,
-    Request_PlayerReady
+    Request_PlayerReady,
+    Request_TimeOver,
+    Request_PlayerChangeBomb,
 }
 
 public enum ConnectionType
@@ -431,6 +435,8 @@ public class Server
                 StartBattleSceneHandler(handler, dataReceived.ID);
             else if (request == ClientRequest.Request_PlayerReady)
                 StartBattleHandler(handler, dataReceived.ID);
+            else if (request == ClientRequest.Request_TimeOver)
+                TimeOverHandler(handler, dataReceived.ID);
         }
         else if (bytesRead == BombRequestSize)
         {
@@ -507,6 +513,7 @@ public class Server
                         newPlayer.username = dataReceived.username;
                         newPlayer.ready = false;
                         newPlayer.bomb = 0;
+                        newPlayer.dead = false;
                         newPlayer.winCount = Convert.ToUInt32(reader["WINCOUNT"]);
                         newPlayer.ep = null;
 
@@ -661,8 +668,45 @@ public class Server
         }
     }
 
+    public static void TimeOverHandler(Socket handler, uint ID)
+    {
+        Console.WriteLine("Received 'Time Over' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+        if (CheckPlayerAuthority(ID))
+        {
+            uint deadPlayerID = 0;
+            uint playersDead = 0;
+            for(int i = 0; i < players.Count; i++)
+            {
+                if(players[i].bomb == 1 && players[i].dead == false)
+                {
+                    deadPlayerID = players[i].ID;
+                    players[i] = SetPlayerDead(players[i], true);
+                }
+
+                if (players[i].dead)
+                    playersDead++;
+            }
+
+            if (playersDead == players.Count - 1)
+            {
+                //TODO: Add win point to the player
+                //TODO: Players return to waitroom
+            }
+            else
+            {
+                ServerConfirmationPacket packet;
+                packet.ID = deadPlayerID;
+                packet.msg = (uint)ServerMessage.Server_PlayerDead;
+
+                Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+            }
+        }
+    }
+
     public static void ChangePlayerBombHandler(Socket handler, ClientBombChangePacket data)
     {
+        Console.WriteLine("Received 'Change Player Bomb' Request from {0}:{1}", ((IPEndPoint)handler.RemoteEndPoint).Address, ((IPEndPoint)handler.RemoteEndPoint).Port);
+
         bool confirmed = true;
         if (CheckPlayerLogged(data.ID) && CheckPlayerLogged(data.otherID))
         {
@@ -735,6 +779,7 @@ public class Server
         {
             players[i] = SetPlayerReady(players[i], false);
             players[i] = SetPlayerBomb(players[i], 0);
+            players[i] = SetPlayerDead(players[i], false);
         }
     }
 
@@ -748,6 +793,7 @@ public class Server
         modifiedPlayer.authority = authority;
         modifiedPlayer.ready = player.ready;
         modifiedPlayer.bomb = player.bomb;
+        modifiedPlayer.dead = player.dead;
         modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
@@ -763,6 +809,7 @@ public class Server
         modifiedPlayer.authority = player.authority;
         modifiedPlayer.ready = ready;
         modifiedPlayer.bomb = player.bomb;
+        modifiedPlayer.dead = player.dead;
         modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
@@ -778,6 +825,7 @@ public class Server
         modifiedPlayer.authority = player.authority;
         modifiedPlayer.ready = player.ready;
         modifiedPlayer.bomb = bomb;
+        modifiedPlayer.dead = player.dead;
         modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
@@ -793,7 +841,24 @@ public class Server
         modifiedPlayer.authority = player.authority;
         modifiedPlayer.ready = player.ready;
         modifiedPlayer.bomb = player.bomb;
+        modifiedPlayer.dead = player.dead;
         modifiedPlayer.ep = ep;
+
+        return modifiedPlayer;
+    }
+
+    public static PlayerInfo SetPlayerDead(PlayerInfo player, bool dead)
+    {
+        PlayerInfo modifiedPlayer;
+        modifiedPlayer.ID = player.ID;
+        modifiedPlayer.username = player.username;
+        modifiedPlayer.handler = player.handler;
+        modifiedPlayer.winCount = player.winCount;
+        modifiedPlayer.authority = player.authority;
+        modifiedPlayer.ready = player.ready;
+        modifiedPlayer.bomb = player.bomb;
+        modifiedPlayer.dead = dead;
+        modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
     }
@@ -869,7 +934,7 @@ public class Server
         while (true)
         {
             messageReceived = false;
-            Console.WriteLine("Waiting for UDP conection...");
+            //Console.WriteLine("Waiting for UDP conection...");
             Client.BeginReceive(new AsyncCallback(ReceiveCallbackUDP), Net);
             while (!messageReceived)
             {
@@ -903,20 +968,24 @@ public class Server
 
     public static void GameUpdateHandler(IPEndPoint ep, byte[] bytesReceived)
     {
-        Console.WriteLine("Received 'Game Update' Packet from {0}:{1}", bytesReceived.Length, ep.Address, ep.Port);
+        //Console.WriteLine("Received 'Game Update' Packet from {0}:{1}", bytesReceived.Length, ep.Address, ep.Port);
         ClientGamePacket packet = GetGamePacketFromBytes(bytesReceived);
 
+        bool accepted = true;
         for(int i = 0; i < players.Count; i++)
         {
             if (packet.ID == players[i].ID)
             {
                 if (players[i].ep == null)
                     players[i] = SetPlayerEP(players[i], ep);
+
+                if (players[i].dead)
+                    accepted = false;
                 break;
             }
         }
 
-        if(CheckPlayerLogged(packet.ID))
+        if(CheckPlayerLogged(packet.ID) && accepted)
             Broadcast(ConnectionType.UDP, GetBytesFromPacket(packet));
     }
 
@@ -937,7 +1006,7 @@ public class Server
     private static void SendCallbackUDP(IAsyncResult ar)    
     {
         UdpClient client = (UdpClient)ar.AsyncState;
-        Console.WriteLine("Sent {0} bytes to client.", client.EndSend(ar));
+        //Console.WriteLine("Sent {0} bytes to client.", client.EndSend(ar));
         messageSent = true;
     }
     public static Platform RunningPlatform()

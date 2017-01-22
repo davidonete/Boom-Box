@@ -141,15 +141,18 @@ void BattleScene::Update()
             windowFocus = false;
     }
 
-    for (int i = 0; i < players.size(); i++)
+    for (int i = 0; i < Objects.size(); i++)
     {
-        Vec2 pos = players[i]->GetPosition();
-        if (pos.x > 831.0f)
-            players[i]->SetPosition(Vec2(-30.0f, pos.y));
-        else if (pos.x < -31.0f)
-            players[i]->SetPosition(Vec2(830.0f, pos.y));
-        if (pos.y > 530.0f)
-            players[i]->SetPosition(Vec2(pos.x, 519.0f));
+        if (Objects[i]->GetType() == Type_Player)
+        {
+            Vec2 pos = Objects[i]->GetPosition();
+            if (pos.x > 831.0f)
+                Objects[i]->SetPosition(Vec2(-30.0f, pos.y));
+            else if (pos.x < -31.0f)
+                Objects[i]->SetPosition(Vec2(830.0f, pos.y));
+            if (pos.y > 530.0f)
+                Objects[i]->SetPosition(Vec2(pos.x, 519.0f));
+        }
     }
 
     UpdatePlayers();
@@ -203,12 +206,24 @@ void BattleScene::GetServerTCPPackets()
             {
                 if (Objects[i]->GetType() == Type_Player)
                 {
-                    Player *player = static_cast<Player*>(Objects[i]);
+                    Player *player = dynamic_cast<Player*>(Objects[i].get());
                     if (player->GetPlayerID() == packet.fromID)
                         player->SetBomb(false);
                     else if (player->GetPlayerID() == packet.toID)
                         player->SetBomb(true);
                 }
+            }
+        }
+        else if (packetType == Type_ClientRequestPacket)
+        {
+            ClientRequestPacket packet;
+            Network->GetPacketFromBytes(buffer, packet);
+            ServerMessage msg = Network->GetServerMessage(packet.msg);
+            if (msg == Server_PlayerDead)
+            {
+                mutex.lock();
+                DestroyPlayer(packet.ID);
+                mutex.unlock();
             }
         }
 
@@ -233,7 +248,7 @@ void BattleScene::GetServerUDPPackets()
             if (packet.ID != Network->GetClientID())
             {
                 mutex.lock();
-                lastPacketsReceived.push_back(packet);
+                lastGamePacketsReceived.push_back(packet);
                 mutex.unlock();
             }
         }
@@ -244,14 +259,14 @@ void BattleScene::UpdatePlayers()
 {
     mutex.lock();
 
-    while (lastPacketsReceived.size() > 0)
+    while (lastGamePacketsReceived.size() > 0)
     {
-        GamePacket packet = lastPacketsReceived[0];
+        GamePacket packet = lastGamePacketsReceived[0];
         for (int i = 0; i < Objects.size(); i++)
         {
             if (Objects[i]->GetType() == Type_Player)
             {
-                Player *player = static_cast<Player*>(Objects[i]);
+                Player *player = dynamic_cast<Player*>(Objects[i].get());
                 if (player->GetPlayerID() == packet.ID)
                 {
                     player->SetPosition(Vec2(packet.x, packet.y));
@@ -260,9 +275,8 @@ void BattleScene::UpdatePlayers()
                 }
             }
         }
-        lastPacketsReceived.erase(lastPacketsReceived.begin());
+        lastGamePacketsReceived.erase(lastGamePacketsReceived.begin());
     }
-
     mutex.unlock();
 }
 
@@ -270,9 +284,9 @@ void BattleScene::UpdateTimer()
 {
     if (timeLeft > 0)
     {
-        auto microseconds = clock.getElapsedTime().asSeconds();
-        // Only update every second
-        if (microseconds > 1)
+        auto seconds = clock.getElapsedTime().asSeconds();
+        // Only update every 1 second
+        if (seconds > 1)
         {
             timeLeft--;
             std::ostringstream ss;
@@ -285,7 +299,10 @@ void BattleScene::UpdateTimer()
                 NetworkManager* Network = GameManager::GetInstance()->Network;
                 if (Network->IsAuthority())
                 {
-                    //TO-DO: Game Over
+                    ClientRequestPacket packet;
+                    packet.ID = Network->GetClientID();
+                    packet.msg = Network->GetCodeFromRequest(Request_TimeOver);
+                    Network->SendPacket(packet);
                 }
             }
         }

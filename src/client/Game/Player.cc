@@ -28,7 +28,10 @@ Player::Player(Vec2 position, float32 rotation, float32 density, float32 frictio
     lastPacketSent.y = 0.0f;
 }
 
-Player::~Player() {}
+Player::~Player()
+{
+    std::cout << "Destroyed child";
+}
 
 void Player::Init() {}
 

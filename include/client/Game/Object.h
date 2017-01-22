@@ -72,7 +72,7 @@ class Object
 {
 public:
   Object();
-  ~Object();
+  virtual ~Object();
 
   //Only for square shapes
   Object(Vec2 position, Vec2 scale, float32 rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world);
@@ -89,6 +89,7 @@ public:
   virtual void OnCollisionDetected(Object* otherObject);
   inline bool GetIsCollisionEnabled() { return collisionEnabled; }
   inline ObjectType GetType() { return object.type; }
+  inline b2Body* GetBody() { return object.body; }
 
 protected:
   ObjectInfo* GetObject() { return &object; }

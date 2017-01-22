@@ -27,6 +27,7 @@ private:
   void GetServerUDPPackets();
 
   void UpdatePlayers();
+  void UpdatePlayerDelete();
   void UpdateTimer();
 
   sf::RenderWindow* RenderWindow;
@@ -34,7 +35,7 @@ private:
   sf::Texture background;
   sf::Sprite sprite;
 
-  float timeLeft = 101.0f;
+  float timeLeft = 11.0f;
   sf::Text timeText;
   sf::Font myfont;
   sf::Clock clock;
@@ -46,7 +47,8 @@ private:
   sf::Thread* serverReceiveTCPThread;
   sf::Thread* serverReceiveUDPThread;
 
-  std::vector<GamePacket> lastPacketsReceived;
+  std::vector<GamePacket> lastGamePacketsReceived;
+  std::vector<unsigned int> lastDeadPlayerReceived;
 };
 
 #endif

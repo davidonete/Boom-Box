@@ -25,6 +25,12 @@ enum GameScene
 	GameScene_Battle
 };
 
+struct ObjectsToDestroy
+{
+    unsigned int index;
+    Object* object;
+};
+
 class Scene
 {
 public:
@@ -42,11 +48,12 @@ protected:
     void AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID, bool hasBomb);
     void AddPlatform(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world);
     void AddObject(Vec2 position, Vec2 scale, float rotation, BodyType type, float32 density, float32 friction, const char* texturePath, b2World* world);
+    void DestroyPlayer(unsigned int ID);
 
-	std::vector<Object*> Objects;
-	b2World* World;
+	std::vector<std::unique_ptr<Object>> Objects;
+    std::vector<ObjectsToDestroy> objectsToDestroy;
 
-    std::vector<Player*> players;
+	b2World* World = nullptr;
 
     bool windowFocus = false;
 

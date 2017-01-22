@@ -29,6 +29,8 @@ enum ServerMessage
   Server_PlayerDisconnected,
   Server_StartBattleScene,
   Server_StartBattle,
+  Server_BombPossession,
+  Server_PlayerDead,
 };
 
 enum RequestMessage
@@ -37,6 +39,7 @@ enum RequestMessage
   Request_DisconnectPlayer,
   Request_StartBattleScene,
   Request_PlayerReady,
+  Request_TimeOver,
   Request_PlayerChangeBomb,
 };
 
@@ -160,7 +163,7 @@ private:
   sf::TcpSocket tcpSocket;
   sf::UdpSocket udpSocket;
 
-  std::string IPADDRESS;
+  std::string IPADDRESS = "100.76.205.7";
   unsigned short PORT = 8080;
 
   PlayerInformation client;
