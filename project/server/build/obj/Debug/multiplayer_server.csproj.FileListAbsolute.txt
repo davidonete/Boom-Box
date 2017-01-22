@@ -1,5 +1,0 @@
-D:\Desktop\Things\Work\Multiplayer\bin\Windows\Release\multiplayer_server.exe
-D:\Desktop\Things\Work\Multiplayer\bin\Windows\Release\multiplayer_server.pdb
-D:\Desktop\Things\Work\Multiplayer\project\server\build\obj\Debug\multiplayer_server.csprojResolveAssemblyReference.cache
-D:\Desktop\Things\Work\Multiplayer\project\server\build\obj\Debug\multiplayer_server.exe
-D:\Desktop\Things\Work\Multiplayer\project\server\build\obj\Debug\multiplayer_server.pdb

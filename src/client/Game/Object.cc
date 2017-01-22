@@ -108,7 +108,7 @@ void Object::ApplyForce(Vec2 force)
         if (force.y != 0.0f)
         {
             float velYChange = force.y - vel.y;
-            float32 fy = object.body->GetMass() * velYChange / (1.0f / 60.0f);
+            fy = object.body->GetMass() * velYChange / (1.0f / 60.0f);
         }
         object.body->ApplyForce(b2Vec2(fx, fy), object.body->GetWorldCenter(), true);
     }

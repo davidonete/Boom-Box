@@ -2,6 +2,9 @@
 
 cd "$(dirname "$0")"
 
+mkdir ../../bin
+mkdir ../../bin/OSX
+mkdir ../../bin/OSX/Debug
 mkdir ../../bin/OSX/Debug/data
 mkdir ~/lib
 
