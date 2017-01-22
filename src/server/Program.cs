@@ -1,4 +1,4 @@
-﻿#define MonoCS
+﻿//#define MonoCS
 
 using System;
 using System.Net;
@@ -316,16 +316,19 @@ public class Server
         byte[] bytes = new Byte[1024];
 
         // Establish the local endpoint for the socket.
-        // The DNS name of the computer
-        // running the listener is "host.contoso.com".
-        IPAddress ipAddress = System.Net.IPAddress.Parse("127.0.0.1");
         int port = 8080;
 
-        //IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
-        IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
+        IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
-        Console.WriteLine("Server IP: " + ipAddress + ":" + port);
-
+        var host = Dns.GetHostEntry(Dns.GetHostName());
+        foreach (var ip in host.AddressList)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                Console.WriteLine("Server IP: {0}:{1}", ip.ToString(), port);
+                //break;
+            }
+        }
         // Create a TCP/IP socket.
         Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 

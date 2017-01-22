@@ -29,6 +29,8 @@ private:
   sf::Sprite sprite;
 
   sfg::Label::Ptr ErrorMsg;
+  sfg::Entry::Ptr IP;
+  sfg::Entry::Ptr Port;
   sfg::Entry::Ptr Username;
   sfg::Entry::Ptr Password;
 

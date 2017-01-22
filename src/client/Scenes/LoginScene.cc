@@ -37,6 +37,8 @@ void LoginScene::Init()
 
 void LoginScene::InitGUI()
 {
+    NetworkManager* Network = GameManager::GetInstance()->Network;
+
     std::shared_ptr<sf::Font> my_font = std::make_shared<sf::Font>();
     my_font->loadFromFile(GameManager::GetFontPath("arial.ttf"));
     sfg::Context::Get().GetEngine().GetResourceManager().SetDefaultFont( my_font );
@@ -44,9 +46,24 @@ void LoginScene::InitGUI()
     
     Window = sfg::Window::Create(sfg::Window::BACKGROUND | sfg::Window::SHADOW);
 
+    IP = sfg::Entry::Create();
+    IP->SetMaximumLength(15);
+    IP->SetRequisition(sf::Vector2f(100.0f, 0.0f));
+    IP->SetText(Network->GetIP());
+
+    Port = sfg::Entry::Create();
+    Port->SetMaximumLength(6);
+    Port->SetRequisition(sf::Vector2f(50.0f, 0.0f));
+    Port->SetText(std::to_string(Network->GetPort()));
+
+    sfg::Box::Ptr ipPort = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.0f);
+    ipPort->Pack(IP);
+    ipPort->Pack(Port);
+
     Username = sfg::Entry::Create();
     Username->SetMaximumLength(32);
     Username->SetRequisition(sf::Vector2f(100.0f, 0.0f));
+    Username->SetText(Network->GetUsername());
 
     Password = sfg::Entry::Create();
     Password->HideText('*');
@@ -61,17 +78,19 @@ void LoginScene::InitGUI()
     Exit->SetRequisition(sf::Vector2f(100.0f, 5.0f));
     Exit->GetSignal(sfg::Widget::OnLeftClick).Connect(std::bind(&LoginScene::OnExitPressed, this));
 
-    ErrorMsg = sfg::Label::Create("Log In:");
+    ErrorMsg = sfg::Label::Create("Log In");
     ErrorMsg->SetId("ErrorMsg");
     
     sfg::Table::Ptr Table = sfg::Table::Create();
     Table->Attach(ErrorMsg, sf::Rect<sf::Uint32>(0, 0, 2, 1), sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(sfg::Label::Create(L"Username:"), sf::Rect<sf::Uint32>(0, 1, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(Username, sf::Rect<sf::Uint32>(1, 1, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(sfg::Label::Create(L"Password:"), sf::Rect<sf::Uint32>(0, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(Password, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
-    Table->Attach(LogIn, sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
-    Table->Attach(Exit, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table->Attach(sfg::Label::Create(L"Server IP:"), sf::Rect<sf::Uint32>(0, 1, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(ipPort, sf::Rect<sf::Uint32>(1, 1, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(sfg::Label::Create(L"Username:"), sf::Rect<sf::Uint32>(0, 2, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(Username, sf::Rect<sf::Uint32>(1, 2, 1, 1), sfg::Table::EXPAND | sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(sfg::Label::Create(L"Password:"), sf::Rect<sf::Uint32>(0, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(Password, sf::Rect<sf::Uint32>(1, 3, 1, 1), sfg::Table::FILL, sfg::Table::FILL);
+    Table->Attach(LogIn, sf::Rect<sf::Uint32>(0, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
+    Table->Attach(Exit, sf::Rect<sf::Uint32>(1, 4, 1, 1), sfg::Table::FILL, sfg::Table::FILL, sf::Vector2f(0.0f, 0.0f));
     Table->SetRowSpacings(5.f);
     Table->SetColumnSpacings(5.f);
 
@@ -147,13 +166,18 @@ void LoginScene::Render()
 
 void LoginScene::OnLoginPressed()
 {
-    if (Username->GetText().isEmpty() || Password->GetText().isEmpty())
+    if(IP->GetText().isEmpty() || Port->GetText().isEmpty())
+        LoginError("Invalid Server IP. Check it and try again.");
+    else if (Username->GetText().isEmpty() || Password->GetText().isEmpty())
         LoginError("Wrong username or password. Try again.");
     else
     {
         GameManager* GM = GameManager::GetInstance();
-        if(!alreadyConnected)
+        if (!alreadyConnected)
+        {
+            GM->Network->SetIP(IP->GetText().toAnsiString(), std::stoi(Port->GetText().toAnsiString()));
             alreadyConnected = GM->Network->Connect(TCP);
+        }
         if (alreadyConnected)
         {
             LogInPacket packet;

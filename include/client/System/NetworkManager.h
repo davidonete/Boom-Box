@@ -150,13 +150,18 @@ public:
   inline void SetClientID(unsigned int id) { client.ID = id; }
   inline std::string GetUsername() { return client.username; }
   inline void SetUsername(std::string username) { client.username = username; }
-
+  inline std::string GetIP() { return IPADDRESS; }
+  inline unsigned short GetPort() { return PORT; }
+  inline void SetIP(std::string IP, unsigned int port) { IPADDRESS = IP; PORT = port; }
   static unsigned int GetSizeOfBytes(char bytes[]);
   void LogOut();
 
 private:
   sf::TcpSocket tcpSocket;
   sf::UdpSocket udpSocket;
+
+  std::string IPADDRESS;
+  unsigned short PORT = 8080;
 
   PlayerInformation client;
 };

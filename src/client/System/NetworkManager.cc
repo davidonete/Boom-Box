@@ -2,16 +2,12 @@
 
 #include <iostream>
 
-const unsigned short PORT = 8080;
-const std::string IPADDRESS("127.0.0.1");
-
 NetworkManager::NetworkManager() {}
 
 NetworkManager::~NetworkManager() {}
 
 void NetworkManager::Init()
 {
-    //tcpSocket.setBlocking(false);
     client.authority = false;
     client.ID = 0;
 }
@@ -20,7 +16,7 @@ bool NetworkManager::Connect(ConnectionType type)
 {
     if (type == TCP)
     {
-        sf::Socket::Status socket = tcpSocket.connect(IPADDRESS, PORT);
+        sf::Socket::Status socket = tcpSocket.connect(IPADDRESS, PORT, sf::Time(sf::seconds(15)));
         if (socket == sf::Socket::Done)
         {
             std::cout << "Connected.\n";
@@ -32,7 +28,6 @@ bool NetworkManager::Connect(ConnectionType type)
     else
     {
         //UDP does not need a previous connection for sending
-        //udpSocket.setBlocking(false);
         //Bind to a local port to receive from server
         udpSocket.bind(sf::Socket::AnyPort);
         return true;
