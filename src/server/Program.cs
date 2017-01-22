@@ -4,7 +4,17 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
-using System.Data.SQLite;
+#if __MonoCS__
+    using SQLiteCommand = Mono.Data.Sqlite.SqliteCommand;
+    using SQLiteConnection = Mono.Data.Sqlite.SqliteConnection;
+    using SQLiteDataReader = Mono.Data.Sqlite.SqliteDataReader;
+    using SQLiteException = Mono.Data.Sqlite.SqliteException;
+#else
+    using SQLiteCommand = System.Data.SQLite.SQLiteCommand;
+    using SQLiteConnection = System.Data.SQLite.SQLiteConnection;
+    using SQLiteDataReader = System.Data.SQLite.SQLiteDataReader;
+    using SQLiteException = System.Data.SQLite.SQLiteException;
+#endif
 using System.Collections.Generic;
 
 // State object for reading client data asynchronously
@@ -140,6 +150,13 @@ public enum ConnectionType
 {
     TCP,
     UDP,
+}
+
+public enum Platform
+{
+    Windows,
+    Linux,
+    Mac
 }
 
 public class Server
@@ -439,7 +456,14 @@ public class Server
         ClientLogInPacket dataReceived = GetLogInPacketFromBytes(state.buffer);
 
         //Confirm log in credentials through database
-        SQLiteConnection db_connection = new SQLiteConnection("Data Source=" + System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True");
+        string databasePath = "";
+        Platform platform = RunningPlatform();
+        if (platform == Platform.Windows)
+            databasePath = "Data Source=" + System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True";
+        else if (platform == Platform.Mac)
+            databasePath = "Data Source=" + System.Environment.CurrentDirectory + "/data/database.db; FailIfMissing=True";
+
+        SQLiteConnection db_connection = new SQLiteConnection(databasePath);
         db_connection.Open();
 
         string query = "select * from Users where USERNAME = @username and PASSWORD = @password";
@@ -910,6 +934,17 @@ public class Server
         UdpClient client = (UdpClient)ar.AsyncState;
         Console.WriteLine("Sent {0} bytes to client.", client.EndSend(ar));
         messageSent = true;
+    }
+    public static Platform RunningPlatform()
+    {
+        switch (Environment.OSVersion.Platform)
+        {
+            case PlatformID.MacOSX:
+                return Platform.Mac;
+
+            default:
+                return Platform.Windows;
+        }
     }
 
     private static void Init()
