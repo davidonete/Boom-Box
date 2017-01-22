@@ -857,7 +857,7 @@ public class Server
     public static void StartListeningUDP()
     {
         // Receive a message and write it to the console. 
-        IPEndPoint EndPoint = new IPEndPoint(IPAddress.Any, 8080);
+		IPEndPoint EndPoint = new IPEndPoint(IPAddress.Any, 8080);
         UdpClient Client = new UdpClient(EndPoint);
         UdpStateObject Net = new UdpStateObject();
         Net.endPoint = EndPoint;
@@ -942,9 +942,15 @@ public class Server
         switch (Environment.OSVersion.Platform)
         {
             case PlatformID.MacOSX:
+				Console.WriteLine ("Detected Mac OS");
                 return Platform.Mac;
 
+			case PlatformID.Unix:
+				Console.WriteLine ("Detected Mac OS");
+				return Platform.Mac;
+
             default:
+			Console.WriteLine ("Detected Windows OS");
                 return Platform.Windows;
         }
     }

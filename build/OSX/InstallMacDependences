@@ -22,7 +22,9 @@ curl -L -o 'homebrew.tar.gz' 'https://github.com/Homebrew/homebrew/tarball/maste
 gunzip -c homebrew.tar.gz | tar xopf -
 
 rm homebrew.tar.gz
+rm -r -f ~/homebrew
 mv ~/Homebrew-legacy-homebrew-5a9e19f ~/homebrew
+rm -r -f ~/Homebrew-legacy-homebrew-5a9e19f
 
 mkdir ~/bin
 ln -s ~/homebrew/bin/brew ~/bin/brew
