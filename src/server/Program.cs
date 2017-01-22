@@ -46,6 +46,13 @@ public struct ServerMessagePacket
     public uint msg;
 }
 
+public struct ServerChangeBombPacket
+{
+    public uint fromID;
+    public uint toID;
+    public uint msg;
+}
+
 [StructLayout(LayoutKind.Sequential)]
 public struct ClientLogInPacket
 {
@@ -71,6 +78,14 @@ public struct ClientRequestPacket
 }
 
 [StructLayout(LayoutKind.Sequential)]
+public struct ClientBombChangePacket
+{
+    public uint ID;
+    public uint otherID;
+    public uint msg;
+}
+
+[StructLayout(LayoutKind.Sequential)]
 public struct PlayerInfoPacket
 {
     public uint ID;
@@ -87,6 +102,7 @@ public struct PlayerInfo
     public bool authority;
     public string username;
     public bool ready;
+    public uint bomb;
     public Socket handler;
     public IPEndPoint ep;
 }
@@ -109,6 +125,7 @@ public enum ServerMessage
     Server_PlayerDisconnected,
     Server_StartBattleScene,
     Server_StartBattle,
+    Server_BombPossession,
 }
 
 public enum ClientRequest
@@ -197,6 +214,18 @@ public class Server
         return bytes;
     }
 
+    static byte[] GetBytesFromPacket(ServerChangeBombPacket packet)
+    {
+        int size = System.Runtime.InteropServices.Marshal.SizeOf(packet);
+        byte[] bytes = new byte[size];
+
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.StructureToPtr(packet, ptr, true);
+        Marshal.Copy(ptr, bytes, 0, size);
+        Marshal.FreeHGlobal(ptr);
+        return bytes;
+    }
+
     static ClientGamePacket GetGamePacketFromBytes(byte[] buffer)
     {
         ClientGamePacket packet = new ClientGamePacket();
@@ -244,6 +273,19 @@ public class Server
         IntPtr ptr = Marshal.AllocHGlobal(size);
         Marshal.Copy(buffer, 0, ptr, size);
         packet = (ClientRequestPacket)Marshal.PtrToStructure(ptr, packet.GetType());
+        Marshal.FreeHGlobal(ptr);
+
+        return packet;
+    }
+
+    static ClientBombChangePacket GetBombRequestPacketFromBytes(byte[] buffer)
+    {
+        ClientBombChangePacket packet = new ClientBombChangePacket();
+
+        int size = Marshal.SizeOf(packet);
+        IntPtr ptr = Marshal.AllocHGlobal(size);
+        Marshal.Copy(buffer, 0, ptr, size);
+        packet = (ClientBombChangePacket)Marshal.PtrToStructure(ptr, packet.GetType());
         Marshal.FreeHGlobal(ptr);
 
         return packet;
@@ -350,6 +392,7 @@ public class Server
     public static void RequestHandler(int bytesRead, StateObject state, Socket handler)
     {
         int RequestSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientRequestPacket));
+        int BombRequestSize = System.Runtime.InteropServices.Marshal.SizeOf(typeof(ClientBombChangePacket));
         if (bytesRead == RequestSize)
         {
             ClientRequestPacket dataReceived = GetRequestPacketFromBytes(state.buffer);
@@ -366,6 +409,11 @@ public class Server
                 StartBattleSceneHandler(handler, dataReceived.ID);
             else if (request == ClientRequest.Request_PlayerReady)
                 StartBattleHandler(handler, dataReceived.ID);
+        }
+        else if (bytesRead == BombRequestSize)
+        {
+            ClientBombChangePacket dataReceived = GetBombRequestPacketFromBytes(state.buffer);
+            ChangePlayerBombHandler(handler, dataReceived);
         }
         else
         {
@@ -429,6 +477,7 @@ public class Server
                         newPlayer.authority = false;
                         newPlayer.username = dataReceived.username;
                         newPlayer.ready = false;
+                        newPlayer.bomb = 0;
                         newPlayer.winCount = Convert.ToUInt32(reader["WINCOUNT"]);
                         newPlayer.ep = null;
 
@@ -505,7 +554,10 @@ public class Server
             if (players[i].ID == ID)
             {
                 lastPacket.ID = players[i].ID;
-                lastPacket.winCount = players[i].winCount;
+                if (serverState == ServerState.Battle)
+                    lastPacket.winCount = players[i].bomb;
+                else
+                    lastPacket.winCount = players[i].winCount;
                 lastPacket.authority = Convert.ToUInt32(players[i].authority);
                 lastPacket.username = players[i].username;
             }
@@ -513,7 +565,10 @@ public class Server
             {
                 PlayerInfoPacket packet;
                 packet.ID = players[i].ID;
-                packet.winCount = players[i].winCount;
+                if (serverState == ServerState.Battle)
+                    packet.winCount = players[i].bomb;
+                else
+                    packet.winCount = players[i].winCount;
                 packet.authority = Convert.ToUInt32(players[i].authority);
                 packet.username = players[i].username;
                 SendTCP(handler, GetBytesFromPacket(packet));
@@ -531,6 +586,11 @@ public class Server
         {
             if (players.Count > 1)
             {
+                ResetPlayersStatus();
+
+                int chosen = new Random().Next(0, players.Count);
+                players[chosen] = SetPlayerBomb(players[chosen], 1);
+
                 packet.msg = (uint)ServerMessage.Server_StartBattleScene;
                 Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
                 serverState = ServerState.Battle;
@@ -572,6 +632,41 @@ public class Server
         }
     }
 
+    public static void ChangePlayerBombHandler(Socket handler, ClientBombChangePacket data)
+    {
+        bool confirmed = true;
+        if (CheckPlayerLogged(data.ID) && CheckPlayerLogged(data.otherID))
+        {
+            if (CheckPlayerBomb(data.ID) && !CheckPlayerBomb(data.otherID))
+            {
+                for (int i = 0; i < players.Count; i++)
+                {
+                    if (players[i].ID == data.ID)
+                        players[i] = SetPlayerBomb(players[i], 0);
+                    else if (players[i].ID == data.otherID)
+                        players[i] = SetPlayerBomb(players[i], 1);
+                }
+
+                ServerChangeBombPacket packet;
+                packet.fromID = data.ID;
+                packet.toID = data.otherID;
+                packet.msg = (uint)ServerMessage.Server_BombPossession;
+                Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+            }
+            else
+                confirmed = false;
+        }
+        else
+            confirmed = false;
+
+        if (!confirmed)
+        {
+            ServerMessagePacket packet;
+            packet.msg = (uint)ServerMessage.Server_Denied;
+            SendTCP(handler, GetBytesFromPacket(packet));
+        }
+    }
+
     public static bool CheckPlayerLogged(uint ID)
     {
         if (players.Count > 0)
@@ -595,6 +690,25 @@ public class Server
         return false;
     }
 
+    public static bool CheckPlayerBomb(uint ID)
+    {
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (players[i].ID == ID && players[i].bomb == 1)
+                return true;
+        }
+        return false;
+    }
+
+    public static void ResetPlayersStatus()
+    {
+        for (int i = 0; i < players.Count; i++)
+        {
+            players[i] = SetPlayerReady(players[i], false);
+            players[i] = SetPlayerBomb(players[i], 0);
+        }
+    }
+
     public static PlayerInfo SetPlayerAuthority(PlayerInfo player, bool authority)
     {
         PlayerInfo modifiedPlayer;
@@ -604,6 +718,7 @@ public class Server
         modifiedPlayer.winCount = player.winCount;
         modifiedPlayer.authority = authority;
         modifiedPlayer.ready = player.ready;
+        modifiedPlayer.bomb = player.bomb;
         modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
@@ -618,6 +733,22 @@ public class Server
         modifiedPlayer.winCount = player.winCount;
         modifiedPlayer.authority = player.authority;
         modifiedPlayer.ready = ready;
+        modifiedPlayer.bomb = player.bomb;
+        modifiedPlayer.ep = player.ep;
+
+        return modifiedPlayer;
+    }
+
+    public static PlayerInfo SetPlayerBomb(PlayerInfo player, uint bomb)
+    {
+        PlayerInfo modifiedPlayer;
+        modifiedPlayer.ID = player.ID;
+        modifiedPlayer.username = player.username;
+        modifiedPlayer.handler = player.handler;
+        modifiedPlayer.winCount = player.winCount;
+        modifiedPlayer.authority = player.authority;
+        modifiedPlayer.ready = player.ready;
+        modifiedPlayer.bomb = bomb;
         modifiedPlayer.ep = player.ep;
 
         return modifiedPlayer;
@@ -632,6 +763,7 @@ public class Server
         modifiedPlayer.winCount = player.winCount;
         modifiedPlayer.authority = player.authority;
         modifiedPlayer.ready = player.ready;
+        modifiedPlayer.bomb = player.bomb;
         modifiedPlayer.ep = ep;
 
         return modifiedPlayer;

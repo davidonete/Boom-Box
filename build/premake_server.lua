@@ -41,8 +41,7 @@ project "multiplayer_server"
 	}
 
 	files {
-		"../src/server/**.*",
-		"../include/server/**.*",
+		"../src/server/Program.cs",
 	}
 	
 	configuration "Debug"

@@ -43,9 +43,9 @@ void WaitRoomScene::Init()
 void WaitRoomScene::InitGUI()
 {
     std::shared_ptr<sf::Font> my_font = std::make_shared<sf::Font>();
-    my_font->loadFromFile( "data/fonts/arial.ttf" );
+    my_font->loadFromFile(GameManager::GetFontPath("arial.ttf"));
     sfg::Context::Get().GetEngine().GetResourceManager().SetDefaultFont( my_font );
-    sfg::Context::Get().GetEngine().SetProperty( "*", "FontName",  "data/fonts/arial.ttf" );
+    sfg::Context::Get().GetEngine().SetProperty( "*", "FontName", GameManager::GetFontPath("arial.ttf"));
     
     sf::Vector2f winSize = (sf::Vector2f)RenderWindow->getSize();
     sf::Vector2f ChatSize(((winSize.x * 700.f) / 1366.0f) * ChatSizeX, ((winSize.y * 250.f) / 768.0f) * ChatSizeY);

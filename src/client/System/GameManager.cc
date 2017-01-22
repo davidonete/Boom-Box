@@ -5,9 +5,9 @@
 
 //Path of assets on the different OS targets
 #ifdef _WIN32
-    #define IMAGE_PATH "../../../data/images/"
+    #define DATA_PATH "../../../data/"
 #elif __APPLE__
-    #define IMAGE_PATH "data/images/"
+    #define DATA_PATH "data/"
 #endif
 
 GameManager* GameManager::Instance = nullptr;
@@ -135,6 +135,14 @@ void GameManager::CloseGame()
 
 std::string GameManager::GetImagePath(const char* filename) 
 {
-    std::string path = IMAGE_PATH;
-    return path.append(filename);
+    std::string path = DATA_PATH;
+    std::string at = "images/";
+    return path.append(at.append(filename));
+}
+
+std::string GameManager::GetFontPath(const char* filename)
+{
+    std::string path = DATA_PATH;
+    std::string at = "fonts/";
+    return path.append(at.append(filename));
 }

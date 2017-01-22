@@ -76,6 +76,21 @@ bool NetworkManager::SendPacket(ClientRequestPacket packet)
     return true;
 }
 
+bool NetworkManager::SendPacket(PlayerBombChangePacket packet)
+{
+    // Create bytes to send
+    const int size = sizeof(packet);
+    char buffer[size];
+    memcpy(buffer, &packet, size);
+
+    if (tcpSocket.send(buffer, size) != sf::Socket::Done)
+    {
+        std::cout << "Error sending TCP packet...";
+        return false;
+    }
+    return true;
+}
+
 bool NetworkManager::SendPacket(LogInPacket packet)
 {
     // Create bytes to send
@@ -172,6 +187,8 @@ PacketType NetworkManager::GetPacketType(char bytes[])
             return Type_ServerMessagePacket;
         case sizeof(ClientRequestPacket) :
             return Type_ClientRequestPacket;
+        case sizeof(ServerChangeBombPacket) :
+            return Type_ServerChangeBombPacket;
     }
     return Type_Null;
 }
@@ -189,6 +206,16 @@ bool NetworkManager::GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet)
 bool NetworkManager::GetPacketFromBytes(char bytes[], GamePacket &packet)
 {
     if (GetPacketType(bytes) == Type_GamePacket)
+    {
+        memcpy(&packet, bytes, sizeof(packet));
+        return true;
+    }
+    return false;
+}
+
+bool NetworkManager::GetPacketFromBytes(char bytes[], ServerChangeBombPacket & packet)
+{
+    if (GetPacketType(bytes) == Type_ServerChangeBombPacket)
     {
         memcpy(&packet, bytes, sizeof(packet));
         return true;

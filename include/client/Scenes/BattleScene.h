@@ -27,8 +27,17 @@ private:
   void GetServerUDPPackets();
 
   void UpdatePlayers();
+  void UpdateTimer();
 
   sf::RenderWindow* RenderWindow;
+
+  sf::Texture background;
+  sf::Sprite sprite;
+
+  float timeLeft = 101.0f;
+  sf::Text timeText;
+  sf::Font myfont;
+  sf::Clock clock;
 
   bool changeSceneRequest = false;
   bool deleteSceneRequest = false;

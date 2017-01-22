@@ -33,9 +33,9 @@ void Scene::Render()
 	World->Step(1 / 60.0f, 8, 3);
 }
 
-void Scene::AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID)
+void Scene::AddPlayer(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID, bool hasBomb)
 {
-    players.push_back(new Player(position, rotation, density, friction, world, ID));
+    players.push_back(new Player(position, rotation, density, friction, world, ID, hasBomb));
     Objects.push_back(players.back());
 }
 

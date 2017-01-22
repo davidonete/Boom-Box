@@ -50,7 +50,8 @@ public:
    *  @param filename The name of the file.
    *  @return Relative path to the image file.
    */
-  static std::string GetImagePath(const char * filename);
+  static std::string GetImagePath(const char *filename);
+  static std::string GetFontPath(const char *filename);
 
   /** Get if a specific input has been pressed recently.
    *  @param InputType The input type to check.

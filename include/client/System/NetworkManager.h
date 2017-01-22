@@ -37,6 +37,7 @@ enum RequestMessage
   Request_DisconnectPlayer,
   Request_StartBattleScene,
   Request_PlayerReady,
+  Request_PlayerChangeBomb,
 };
 
 enum PacketType
@@ -47,6 +48,7 @@ enum PacketType
   Type_ServerMessagePacket,
   Type_PlayerInfoPacket,
   Type_ClientRequestPacket,
+  Type_ServerChangeBombPacket,
 };
 
 struct LogInPacket
@@ -80,9 +82,23 @@ struct ServerMessagePacket
   unsigned int msg;
 };
 
+struct ServerChangeBombPacket
+{
+  unsigned int fromID;
+  unsigned int toID;
+  unsigned int msg;
+};
+
 struct ClientRequestPacket
 {
   unsigned int ID;
+  unsigned int msg;
+};
+
+struct PlayerBombChangePacket
+{
+  unsigned int ID;
+  unsigned int otherID;
   unsigned int msg;
 };
 
@@ -104,9 +120,12 @@ public:
   bool Connect(ConnectionType type);
   void Disconnect(ConnectionType type);
 
+  //TCP
   bool SendPacket(LogInPacket packet);
   bool SendPacket(ChatPacket packet);
   bool SendPacket(ClientRequestPacket packet);
+  bool SendPacket(PlayerBombChangePacket packet);
+  //UDP
   bool SendPacket(GamePacket packet);
 
   bool ReceivePacket(ConnectionType Type, char buffer[]);
@@ -115,6 +134,7 @@ public:
   bool GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
   bool GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet);
   bool GetPacketFromBytes(char bytes[], GamePacket &packet);
+  bool GetPacketFromBytes(char bytes[], ServerChangeBombPacket &packet);
 
   static PacketType GetPacketType(char bytes[]);
 

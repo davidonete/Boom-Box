@@ -2,7 +2,7 @@
 
 void Init(GameManager* GM)
 {
-  GM->ChangeScene(GameScene_LogIn);
+  GM->ChangeScene(GameScene_Battle);
 }
 
 void Exit(GameManager* GM)

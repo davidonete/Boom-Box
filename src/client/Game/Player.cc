@@ -1,7 +1,7 @@
 #include "Game/Player.h"
 #include "System/GameManager.h"
 
-Player::Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World * world, unsigned int ID)
+Player::Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World * world, unsigned int ID, bool bombStart)
     : Object(position, Vec2(55.0f, 55.0f), rotation, DynamicBody, density, friction, "player.png", world)
 {
     playerID = ID;
@@ -18,6 +18,7 @@ Player::Player(Vec2 position, float32 rotation, float32 density, float32 frictio
 
     SetCollisionEnabled(true);
     jumping = false;
+    hasBomb = bombStart;
 
     SetType(Type_Player);
 
@@ -33,18 +34,6 @@ void Player::Init() {}
 
 void Player::Input()
 {
-    //Linear velocity
-    //Body->SetLinearVelocity(b2Vec2(inputValue, 0.0f));
-
-    //Impulse
-    /*
-    b2Vec2 vel = Body->GetLinearVelocity();
-    float inputValue = 5.0f;
-    float velChange = inputValue - vel.x;
-    float impulse = Body->GetMass() * velChange;
-    Body->ApplyLinearImpulse(b2Vec2(impulse, 0), Body->GetWorldCenter(), true);
-    */
-
     if (isPlayer)
     {
         //Force
@@ -103,16 +92,22 @@ void Player::SetBomb(bool bomb)
 
 void Player::OnCollisionDetected(Object* otherObject)
 {
+    Object::OnCollisionDetected(otherObject);
     if (otherObject->GetType() == Type_Ground && jumping)
         jumping = false;
     else if (otherObject->GetType() == Type_Player)
     {
         if (GM->Network->IsAuthority())
         {
+            Player* otherPlayer = static_cast<Player*>(otherObject);
             if (HaveBomb())
-                SetBomb(false);
-            else
-                SetBomb(true);
+            {
+                PlayerBombChangePacket packet;
+                packet.ID = GetPlayerID();
+                packet.otherID = otherPlayer->GetPlayerID();
+                packet.msg = NetworkManager::GetCodeFromRequest(Request_PlayerChangeBomb);
+                GM->Network->SendPacket(packet);
+            }
         }
     }
 }
@@ -126,9 +121,8 @@ void Player::UpdatePlayerServer()
         float offset = 1.0f;
         if (!(pos.x > (lastPacketSent.x - offset) && pos.x < (lastPacketSent.x + offset)) || !(pos.y >(lastPacketSent.y - offset) && pos.y < (lastPacketSent.y + offset)) || !(rot >(lastPacketSent.rotation - offset) && rot < (lastPacketSent.rotation + offset)))
         {
-            NetworkManager* Network = GM->Network;
             GamePacket packet;
-            packet.ID = Network->GetClientID();
+            packet.ID = GM->Network->GetClientID();
             packet.rotation = rot;
             packet.x = pos.x;
             packet.y = pos.y;

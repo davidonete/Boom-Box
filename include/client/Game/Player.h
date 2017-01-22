@@ -15,7 +15,7 @@
 class Player : public Object
 {
 public:
-    Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID);
+    Player(Vec2 position, float32 rotation, float32 density, float32 friction, b2World* world, unsigned int ID, bool bombStart);
     ~Player();
 
     void Init() override;

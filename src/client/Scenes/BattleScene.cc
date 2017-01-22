@@ -25,6 +25,16 @@ void BattleScene::Init()
     startPosition.push_back(Vec2(585.0f, 100.0f));
     startPosition.push_back(Vec2(600.0f, 550.0f));
 
+    background.loadFromFile(GameManager::GetImagePath("background.png"));
+    sprite.setTexture(background);
+
+    myfont.loadFromFile(GameManager::GetFontPath("arial.ttf"));
+
+    timeText.setFont(myfont);
+    timeText.setColor(sf::Color(145, 145, 145));
+    timeText.setScale(1.f, 1.f);
+    timeText.move(730.f, 10.f);
+
     NetworkManager* Network = GameManager::GetInstance()->Network;
 
     ClientRequestPacket request;
@@ -57,7 +67,7 @@ void BattleScene::Init()
                     if (player.ID == Network->GetClientID())
                         Network->SetAuthority(player.authority);
 
-                    AddPlayer(startPosition[player.ID -1], 0.0f, 1.0f, 1.2f, World, player.ID);
+                    AddPlayer(startPosition[player.ID -1], 0.0f, 1.0f, 1.2f, World, player.ID, (bool)player.wincount);
                     numPlayers++;
                 }
             }
@@ -74,7 +84,7 @@ void BattleScene::Init()
                     Network->SetAuthority(player.authority);
                     allInfoReceived = true;
                 }
-                AddPlayer(startPosition[player.ID -1], 0.0f, 1.0f, 1.2f, World, player.ID);
+                AddPlayer(startPosition[player.ID -1], 0.0f, 1.0f, 1.2f, World, player.ID, (bool)player.wincount);
                 numPlayers++;
             }
         }
@@ -143,12 +153,15 @@ void BattleScene::Update()
     }
 
     UpdatePlayers();
+    UpdateTimer();
 
     Scene::Update();
 }
 
 void BattleScene::Render()
 {
+    RenderWindow->draw(sprite);
+    RenderWindow->draw(timeText);
     Scene::Render();
 
     if (deleteSceneRequest || changeSceneRequest)
@@ -180,6 +193,23 @@ void BattleScene::GetServerTCPPackets()
             ServerMessage msg = Network->GetServerMessage(packet.msg);
             if (msg == Server_PlayerDisconnected)
                 changeSceneRequest = true;
+        }
+        else if (packetType == Type_ServerChangeBombPacket)
+        {
+            ServerChangeBombPacket packet;
+            Network->GetPacketFromBytes(buffer, packet);
+
+            for (int i = 0; i < Objects.size(); i++)
+            {
+                if (Objects[i]->GetType() == Type_Player)
+                {
+                    Player *player = static_cast<Player*>(Objects[i]);
+                    if (player->GetPlayerID() == packet.fromID)
+                        player->SetBomb(false);
+                    else if (player->GetPlayerID() == packet.toID)
+                        player->SetBomb(true);
+                }
+            }
         }
 
         sf::sleep(sf::milliseconds(16));
@@ -214,7 +244,7 @@ void BattleScene::UpdatePlayers()
 {
     mutex.lock();
 
-    while (lastPacketsReceived.size() != 0)
+    while (lastPacketsReceived.size() > 0)
     {
         GamePacket packet = lastPacketsReceived[0];
         for (int i = 0; i < Objects.size(); i++)
@@ -234,4 +264,30 @@ void BattleScene::UpdatePlayers()
     }
 
     mutex.unlock();
+}
+
+void BattleScene::UpdateTimer()
+{
+    if (timeLeft > 0)
+    {
+        auto microseconds = clock.getElapsedTime().asSeconds();
+        // Only update every second
+        if (microseconds > 1)
+        {
+            timeLeft--;
+            std::ostringstream ss;
+            ss << timeLeft;
+            timeText.setString(ss.str());
+            clock.restart();
+
+            if (timeLeft == 0)
+            { 
+                NetworkManager* Network = GameManager::GetInstance()->Network;
+                if (Network->IsAuthority())
+                {
+                    //TO-DO: Game Over
+                }
+            }
+        }
+    }
 }
