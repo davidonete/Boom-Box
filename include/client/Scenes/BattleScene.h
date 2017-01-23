@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 04/01/17.
-//  Copyright � 2016 David Parra. All rights reserved.
+//  Copyright � 2016 David Parra. All rights reserved. 
 //
 
 #ifndef BATTLESCENE_H
@@ -11,6 +11,9 @@
 
 #include "Scenes/Scene.h"
 
+/** Battle scene.
+ *  The scene of the game that has the battle between players.
+ */
 class BattleScene : public Scene
 {
 public:
@@ -23,11 +26,16 @@ private:
   void Update() override;
   void Render() override;
 
+  /** Function called by thread that gets the TCP packets sended by the server. */
   void GetServerTCPPackets();
+  /** Function called by thread that gets the UDP packets sended by the server. */
   void GetServerUDPPackets();
-
+    
+  /** Updates players using the UDP packets received. */
   void UpdatePlayers();
+  /** Updates players death using the TCP packets received. */
   void UpdatePlayerDelete();
+  /** Updates the game timer. */
   void UpdateTimer();
 
   sf::RenderWindow* RenderWindow;

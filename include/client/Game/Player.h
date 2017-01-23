@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 08/12/16.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef PLAYER_H
@@ -12,6 +12,9 @@
 #include "Object.h"
 #include "System/NetworkManager.h"
 
+/** Player.
+ *  The object class that can be controlled by the user.
+ */
 class Player : public Object
 {
 public:
@@ -23,12 +26,26 @@ public:
     void Update() override;
     void Render() override;
 
+    /** Gets the player ID.
+     *  @return The player ID.
+     */
     inline unsigned int GetPlayerID() { return playerID; }
+    
+    /** Gets if the player has the bomb.
+     *  @return True if the player has the bomb.
+     */
     inline bool HaveBomb() { return hasBomb; }
+    /** Sets if the player has the bomb.
+     *  @param bomb If the player has the bomb.
+     */
     void SetBomb(bool bomb);
 
 private:
+    /** Called whenever the player collides with another object.
+     *  @param otherObject The other object.
+     */
     void OnCollisionDetected(Object* otherObject) override;
+    /** Called every step to send the player information to the server */
     void UpdatePlayerServer();
 
     ObjectSprite bomb;

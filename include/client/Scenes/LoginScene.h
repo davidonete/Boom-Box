@@ -3,6 +3,9 @@
 
 #include "Scenes/Scene.h"
 
+/** Login scene.
+ *  The scene to log in to the server.
+ */
 class LoginScene : public Scene
 {
 public:
@@ -15,9 +18,16 @@ public:
   void Render() override;
 
 private:
+  /** Initialize the GUI. */
   void InitGUI();
+  /** Function called when the player presses the log in button. */
   void OnLoginPressed();
+  /** Function called when the player presses the exit button or closes the window. */
   void OnExitPressed();
+    
+  /** Prints a log in error message received from the server.
+   *  @param message The message received.
+   */
   void LoginError(sf::String message);
 
   sfg::SFGUI GUI;

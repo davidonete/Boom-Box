@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 08/12/16.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef OBJECT_H
@@ -68,6 +68,9 @@ struct ObjectInfo
     ObjectType type;
 };
 
+/** Object.
+ *  The parent class of all the objects of the game. Has the control of the physics and collision events. 
+ */
 class Object
 {
 public:

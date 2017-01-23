@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 08/12/16.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef GAMEMANAGER_H
@@ -51,6 +51,11 @@ public:
    *  @return Relative path to the image file.
    */
   static std::string GetImagePath(const char *filename);
+    
+  /** Get the path of a file depending on the machine OS.
+   *  @param filename The name of the file.
+   *  @return Relative path to the image file.
+   */
   static std::string GetFontPath(const char *filename);
 
   /** Get if a specific input has been pressed recently.
