@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 08/12/16.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef SCENE_H
@@ -55,7 +55,7 @@ protected:
 
 	b2World* World = nullptr;
 
-    bool windowFocus = false;
+    bool windowFocus = true;
 
 private:
 
