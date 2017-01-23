@@ -1,0 +1,27 @@
+var annotated_dup =
+[
+    [ "BattleScene", "class_battle_scene.html", "class_battle_scene" ],
+    [ "ChatPacket", "struct_chat_packet.html", "struct_chat_packet" ],
+    [ "ClientRequestPacket", "struct_client_request_packet.html", "struct_client_request_packet" ],
+    [ "CollisionManager", "class_collision_manager.html", "class_collision_manager" ],
+    [ "GameManager", "class_game_manager.html", "class_game_manager" ],
+    [ "GamePacket", "struct_game_packet.html", "struct_game_packet" ],
+    [ "LogInPacket", "struct_log_in_packet.html", "struct_log_in_packet" ],
+    [ "LoginScene", "class_login_scene.html", "class_login_scene" ],
+    [ "NetworkManager", "class_network_manager.html", "class_network_manager" ],
+    [ "Object", "class_object.html", "class_object" ],
+    [ "ObjectInfo", "struct_object_info.html", "struct_object_info" ],
+    [ "ObjectSprite", "struct_object_sprite.html", "struct_object_sprite" ],
+    [ "ObjectsToDestroy", "struct_objects_to_destroy.html", "struct_objects_to_destroy" ],
+    [ "Platform", "class_platform.html", "class_platform" ],
+    [ "Player", "class_player.html", "class_player" ],
+    [ "PlayerBombChangePacket", "struct_player_bomb_change_packet.html", "struct_player_bomb_change_packet" ],
+    [ "PlayerGUIInfo", "struct_player_g_u_i_info.html", "struct_player_g_u_i_info" ],
+    [ "PlayerInfoPacket", "struct_player_info_packet.html", "struct_player_info_packet" ],
+    [ "PlayerInformation", "struct_player_information.html", "struct_player_information" ],
+    [ "Scene", "class_scene.html", "class_scene" ],
+    [ "ServerChangeBombPacket", "struct_server_change_bomb_packet.html", "struct_server_change_bomb_packet" ],
+    [ "ServerMessagePacket", "struct_server_message_packet.html", "struct_server_message_packet" ],
+    [ "Vec2", "struct_vec2.html", "struct_vec2" ],
+    [ "WaitRoomScene", "class_wait_room_scene.html", "class_wait_room_scene" ]
+];
