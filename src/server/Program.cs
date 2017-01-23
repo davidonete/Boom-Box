@@ -1,8 +1,10 @@
-﻿//#define MonoCS
+﻿//Uncomment this line in order to change from System.Data.SQLite to Mono.Data.Sqlite
+#define MonoCS
 
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
@@ -167,7 +169,7 @@ public enum Platform
 
 public class Server
 {
-    public static ServerState serverState = ServerState.WaitRoom;
+    public static ServerState serverState;
     public static List<PlayerInfo> players;
 
     // Thread signal.
@@ -324,6 +326,23 @@ public class Server
 
         IPEndPoint localEndPoint = new IPEndPoint(IPAddress.Any, port);
 
+		foreach (var netInterface in NetworkInterface.GetAllNetworkInterfaces()) 
+		{
+			if (netInterface.NetworkInterfaceType == NetworkInterfaceType.Wireless80211 || netInterface.NetworkInterfaceType == NetworkInterfaceType.Ethernet) 
+			{
+				foreach (var addrInfo in netInterface.GetIPProperties().UnicastAddresses) 
+				{
+					if (addrInfo.Address.AddressFamily == AddressFamily.InterNetwork) 
+					{
+						var ipAddress = addrInfo.Address;
+						Console.WriteLine("Server IP: {0}:{1}", ipAddress.ToString(), port);
+						// use ipAddress as needed ...
+					}
+				}
+			}  
+		}
+
+		/*
         var host = Dns.GetHostEntry(Dns.GetHostName());
         foreach (var ip in host.AddressList)
         {
@@ -333,6 +352,7 @@ public class Server
                 //break;
             }
         }
+        */
         // Create a TCP/IP socket.
         Socket listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
@@ -674,6 +694,7 @@ public class Server
         if (CheckPlayerAuthority(ID))
         {
             uint deadPlayerID = 0;
+			uint alivePlayerID = 0;
             uint playersDead = 0;
             for(int i = 0; i < players.Count; i++)
             {
@@ -683,22 +704,44 @@ public class Server
                     players[i] = SetPlayerDead(players[i], true);
                 }
 
-                if (players[i].dead)
-                    playersDead++;
+				if (players [i].dead)
+					playersDead++;
+				else
+					alivePlayerID = players[i].ID;
             }
 
             if (playersDead == players.Count - 1)
-            {
-                //TODO: Add win point to the player
-                //TODO: Players return to waitroom
+			{
+				ModifyPlayerWinCount(alivePlayerID, 1);
+                
+				ServerMessagePacket packet;
+				packet.msg = (uint)ServerMessage.Server_PlayerDisconnected;
+				Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+
+				serverState = ServerState.WaitRoom;
             }
             else
             {
                 ServerConfirmationPacket packet;
                 packet.ID = deadPlayerID;
                 packet.msg = (uint)ServerMessage.Server_PlayerDead;
-
                 Broadcast(ConnectionType.TCP, GetBytesFromPacket(packet));
+
+				bool newBombPossession = false;
+				while (!newBombPossession) 
+				{
+					int chosen = new Random().Next(0, players.Count);
+					if (!players [chosen].dead) 
+					{
+						players[chosen] = SetPlayerBomb(players[chosen], 1);
+						ServerChangeBombPacket bombPacket;
+						bombPacket.fromID = 0;
+						bombPacket.toID = players[chosen].ID;
+						bombPacket.msg = (uint)ServerMessage.Server_BombPossession;
+						Broadcast(ConnectionType.TCP, GetBytesFromPacket(bombPacket));
+						newBombPossession = true;
+					}
+				}
             }
         }
     }
@@ -773,6 +816,51 @@ public class Server
         return false;
     }
 
+	public static void ModifyPlayerWinCount(uint ID, int value)
+	{
+		for (int i = 0; i < players.Count; i++) 
+		{
+			if (players [i].ID == ID) 
+			{
+				//Confirm log in credentials through database
+				string databasePath = "";
+				Platform platform = RunningPlatform();
+				if (platform == Platform.Windows)
+					databasePath = "Data Source=" + System.Environment.CurrentDirectory + "\\database.db; FailIfMissing=True";
+				else if (platform == Platform.Mac)
+					databasePath = "Data Source=" + System.Environment.CurrentDirectory + "/data/database.db; FailIfMissing=True";
+
+				SQLiteConnection db_connection = new SQLiteConnection(databasePath);
+				db_connection.Open();
+
+				string query = "select * from Users where ID = @id";
+				SQLiteCommand command = new SQLiteCommand(query, db_connection);
+				command.Parameters.AddWithValue("@id", players[i].ID);
+
+				SQLiteDataReader reader = command.ExecuteReader();
+
+				if (reader.HasRows) 
+				{
+					while (reader.Read ()) 
+					{
+						uint currentWinCount = Convert.ToUInt32 (reader ["WINCOUNT"]);
+						players [i] = SetPlayerWinCount (players [i], currentWinCount + 1);
+
+						string sql = "update Users set WINCOUNT = @wincount where ID = @id";
+						command = new SQLiteCommand (sql, db_connection);
+						command.Parameters.AddWithValue("@wincount", currentWinCount + 1);
+						command.Parameters.AddWithValue("@id", players[i].ID);
+
+						command.ExecuteNonQuery ();
+					}
+				}
+
+				db_connection.Close ();
+				break;
+			}
+		}
+	}
+
     public static void ResetPlayersStatus()
     {
         for (int i = 0; i < players.Count; i++)
@@ -780,8 +868,25 @@ public class Server
             players[i] = SetPlayerReady(players[i], false);
             players[i] = SetPlayerBomb(players[i], 0);
             players[i] = SetPlayerDead(players[i], false);
+			players[i] = SetPlayerEP (players [i], null);
         }
     }
+
+	public static PlayerInfo SetPlayerWinCount(PlayerInfo player, uint winCount)
+	{
+		PlayerInfo modifiedPlayer;
+		modifiedPlayer.ID = player.ID;
+		modifiedPlayer.username = player.username;
+		modifiedPlayer.handler = player.handler;
+		modifiedPlayer.winCount = winCount;
+		modifiedPlayer.authority = player.authority;
+		modifiedPlayer.ready = player.ready;
+		modifiedPlayer.bomb = player.bomb;
+		modifiedPlayer.dead = player.dead;
+		modifiedPlayer.ep = player.ep;
+
+		return modifiedPlayer;
+	}
 
     public static PlayerInfo SetPlayerAuthority(PlayerInfo player, bool authority)
     {
@@ -960,7 +1065,7 @@ public class Server
                 if (bytesRead == GamePacketSize)
                     GameUpdateHandler(EndPoint, bytesReceived);
 
-                //Console.WriteLine("Received {0} bytes from {1}:{2} {3}", bytesReceived.Length, EndPoint.Address, EndPoint.Port, content);
+                //Console.WriteLine("Received {0} bytes from {1}:{2}", bytesReceived.Length, EndPoint.Address, EndPoint.Port);
                 messageReceived = true;
             }
         }
@@ -968,7 +1073,7 @@ public class Server
 
     public static void GameUpdateHandler(IPEndPoint ep, byte[] bytesReceived)
     {
-        //Console.WriteLine("Received 'Game Update' Packet from {0}:{1}", bytesReceived.Length, ep.Address, ep.Port);
+        Console.WriteLine("Received 'Game Update' Packet from {0}:{1}", bytesReceived.Length, ep.Address, ep.Port);
         ClientGamePacket packet = GetGamePacketFromBytes(bytesReceived);
 
         bool accepted = true;
@@ -1001,12 +1106,15 @@ public class Server
         {
             //Thread.Sleep(100);
         }    
+		client.Close ();
     }
 
     private static void SendCallbackUDP(IAsyncResult ar)    
     {
         UdpClient client = (UdpClient)ar.AsyncState;
-        //Console.WriteLine("Sent {0} bytes to client.", client.EndSend(ar));
+		int bytes = client.EndSend(ar);
+
+		//Console.WriteLine("Sent {0} bytes to client.", bytes);
         messageSent = true;
     }
     public static Platform RunningPlatform()
@@ -1030,6 +1138,7 @@ public class Server
     private static void Init()
     {
         players = new List<PlayerInfo>();
+		serverState = ServerState.WaitRoom;
     }
 
     public static int Main(String[] args)

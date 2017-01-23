@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 08/12/16.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef NETWORKMANAGER_H
@@ -131,15 +131,15 @@ public:
   //UDP
   bool SendPacket(GamePacket packet);
 
-  bool ReceivePacket(ConnectionType Type, char buffer[]);
-  bool GetPacketFromBytes(char bytes[], ChatPacket &packet);
-  bool GetPacketFromBytes(char bytes[], ServerMessagePacket &packet);
-  bool GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
-  bool GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet);
-  bool GetPacketFromBytes(char bytes[], GamePacket &packet);
-  bool GetPacketFromBytes(char bytes[], ServerChangeBombPacket &packet);
+  unsigned long ReceivePacket(ConnectionType Type, char buffer[]);
+  void GetPacketFromBytes(char bytes[], ChatPacket &packet);
+  void GetPacketFromBytes(char bytes[], ServerMessagePacket &packet);
+  void GetPacketFromBytes(char bytes[], ClientRequestPacket &packet);
+  void GetPacketFromBytes(char bytes[], PlayerInfoPacket &packet);
+  void GetPacketFromBytes(char bytes[], GamePacket &packet);
+  void GetPacketFromBytes(char bytes[], ServerChangeBombPacket &packet);
 
-  static PacketType GetPacketType(char bytes[]);
+  static PacketType GetPacketType(unsigned long size);
 
   static inline ServerMessage GetServerMessage(unsigned int code) { return static_cast<ServerMessage>(code); }
   static inline unsigned int GetCodeFromRequest(RequestMessage msg) { return static_cast<unsigned int>(msg); }
@@ -156,14 +156,14 @@ public:
   inline std::string GetIP() { return IPADDRESS; }
   inline unsigned short GetPort() { return PORT; }
   inline void SetIP(std::string IP, unsigned int port) { IPADDRESS = IP; PORT = port; }
-  static unsigned int GetSizeOfBytes(char bytes[]);
+    
   void LogOut();
 
 private:
   sf::TcpSocket tcpSocket;
   sf::UdpSocket udpSocket;
 
-  std::string IPADDRESS = "100.76.205.7";
+  std::string IPADDRESS = "152.105.5.136";
   unsigned short PORT = 8080;
 
   PlayerInformation client;

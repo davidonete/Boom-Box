@@ -233,9 +233,9 @@ void WaitRoomScene::GetServerPackets()
     {
         char buffer[128];
         memset(buffer, -52, 128);
-        Network->ReceivePacket(TCP, buffer);
+        unsigned long bytesReceived = Network->ReceivePacket(TCP, buffer);
 
-        PacketType packetType = Network->GetPacketType(buffer);
+        PacketType packetType = Network->GetPacketType(bytesReceived);
         if (packetType == Type_ChatPacket)
         {
             ChatPacket packet;
@@ -259,7 +259,7 @@ void WaitRoomScene::GetServerPackets()
         } 
 
         //delete buffer;
-        sf::sleep(sf::milliseconds(16));
+        //sf::sleep(sf::milliseconds(16));
     }
 }
 
@@ -297,12 +297,12 @@ void WaitRoomScene::UpdateRoomInfo()
     {
         char buffer[256];
         memset(buffer, -52, 256);
-        Network->ReceivePacket(TCP, buffer);
+        unsigned long bytesReceived = Network->ReceivePacket(TCP, buffer);
 
         //If receiving multiple packets at once
-        if (Network->GetSizeOfBytes(buffer) > packetSize)
+        if (bytesReceived > packetSize)
         {
-            int numberOfPackets = Network->GetSizeOfBytes(buffer) / packetSize;
+            int numberOfPackets = (uint)bytesReceived / packetSize;
             for (int i = 0; i < numberOfPackets; i++)
             {
                 char bufferPart[packetSize];
@@ -310,7 +310,7 @@ void WaitRoomScene::UpdateRoomInfo()
                 
                 PlayerInfoPacket player;
                 Network->GetPacketFromBytes(bufferPart, player);
-                if (Network->GetPacketType(bufferPart) == Type_PlayerInfoPacket)
+                if (Network->GetPacketType(packetSize) == Type_PlayerInfoPacket)
                 {
                     bool me = false;
                     if (player.ID == Network->GetClientID())
@@ -330,7 +330,7 @@ void WaitRoomScene::UpdateRoomInfo()
         }
         else
         {
-            if (Network->GetPacketType(buffer) == Type_PlayerInfoPacket)
+            if (Network->GetPacketType(bytesReceived) == Type_PlayerInfoPacket)
             {
                 PlayerInfoPacket player;
                 bool me = false;

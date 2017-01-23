@@ -3,7 +3,7 @@
 //  Multiplayer Game
 //
 //  Created by David Parra on 04/01/17.
-//  Copyright © 2016 David Parra. All rights reserved.
+//  Copyright ï¿½ 2016 David Parra. All rights reserved.
 //
 
 #ifndef BATTLESCENE_H
@@ -35,7 +35,7 @@ private:
   sf::Texture background;
   sf::Sprite sprite;
 
-  float timeLeft = 11.0f;
+  float timeLeft = 20.0f;
   sf::Text timeText;
   sf::Font myfont;
   sf::Clock clock;

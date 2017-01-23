@@ -36,7 +36,7 @@ GameManager* GameManager::GetInstance()
 void GameManager::Init()
 {
     //Initialize window (width, height, bits per pixel)
-    Window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "Super Awesome Game - v1.0");
+    Window = new sf::RenderWindow(sf::VideoMode(800, 600, 32), "Boom Box - v1.0");
     //Window = new sf::RenderWindow(sf::VideoMode::getDesktopMode(), "Super Awesome Game - v1.0");//, sf::Style::Fullscreen);
     Window->setFramerateLimit(60);
 

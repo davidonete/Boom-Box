@@ -193,9 +193,9 @@ void LoginScene::OnLoginPressed()
 
             char buffer[128];
             memset(buffer, -52, 128);
-            GM->Network->ReceivePacket(TCP, buffer);
+            unsigned long bytesReceived = GM->Network->ReceivePacket(TCP, buffer);
 
-            if(GM->Network->GetPacketType(buffer) == Type_ClientRequestPacket)
+            if(GM->Network->GetPacketType(bytesReceived) == Type_ClientRequestPacket)
             {
                 ClientRequestPacket confirmation;
                 GM->Network->GetPacketFromBytes(buffer, confirmation);

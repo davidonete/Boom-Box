@@ -49,12 +49,12 @@ void BattleScene::Init()
     {
         char buffer[256];
         memset(buffer, -52, 256);
-        Network->ReceivePacket(TCP, buffer);
+        unsigned long bytesReceived = Network->ReceivePacket(TCP, buffer);
 
         //If receiving multiple packets at once
-        if (Network->GetSizeOfBytes(buffer) > packetSize)
+        if (bytesReceived > packetSize)
         {
-            int numberOfPackets = Network->GetSizeOfBytes(buffer) / packetSize;
+            int numberOfPackets = (uint)bytesReceived / packetSize;
             for (int i = 0; i < numberOfPackets; i++)
             {
                 char bufferPart[packetSize];
@@ -62,7 +62,7 @@ void BattleScene::Init()
 
                 PlayerInfoPacket player;
                 Network->GetPacketFromBytes(bufferPart, player);
-                if (Network->GetPacketType(bufferPart) == Type_PlayerInfoPacket)
+                if (Network->GetPacketType(packetSize) == Type_PlayerInfoPacket)
                 {
                     if (player.ID == Network->GetClientID())
                         Network->SetAuthority(player.authority);
@@ -75,7 +75,7 @@ void BattleScene::Init()
         }
         else
         {
-            if (Network->GetPacketType(buffer) == Type_PlayerInfoPacket)
+            if (Network->GetPacketType(bytesReceived) == Type_PlayerInfoPacket)
             {
                 PlayerInfoPacket player;
                 Network->GetPacketFromBytes(buffer, player);
@@ -98,15 +98,15 @@ void BattleScene::Init()
     bool startGame = false;
     while (!startGame)
     {
-        char buffer1[256];
-        memset(buffer1, -52, 256);
-        Network->ReceivePacket(TCP, buffer1);
+        char buffer[256];
+        memset(buffer, -52, 256);
+        unsigned long bytesReceived = Network->ReceivePacket(TCP, buffer);
 
-        PacketType packetType = Network->GetPacketType(buffer1);
+        PacketType packetType = Network->GetPacketType(bytesReceived);
         if (packetType == Type_ServerMessagePacket)
         {
             ServerMessagePacket packet;
-            Network->GetPacketFromBytes(buffer1, packet);
+            Network->GetPacketFromBytes(buffer, packet);
             ServerMessage msg = Network->GetServerMessage(packet.msg);
             if (msg == Server_StartBattle)
                 startGame = true;
@@ -186,9 +186,9 @@ void BattleScene::GetServerTCPPackets()
     {
         char buffer[256];
         memset(buffer, -52, 256);
-        Network->ReceivePacket(TCP, buffer);
+        unsigned long bytesReceived = Network->ReceivePacket(TCP, buffer);
 
-        PacketType packetType = Network->GetPacketType(buffer);
+        PacketType packetType = Network->GetPacketType(bytesReceived);
         if (packetType == Type_ServerMessagePacket)
         {
             ServerMessagePacket packet;
@@ -222,6 +222,7 @@ void BattleScene::GetServerTCPPackets()
             if (msg == Server_PlayerDead)
             {
                 mutex.lock();
+                timeLeft = 21.0f;
                 DestroyPlayer(packet.ID);
                 mutex.unlock();
             }
@@ -238,9 +239,9 @@ void BattleScene::GetServerUDPPackets()
     {
         char buffer[256];
         memset(buffer, -52, 256);
-        Network->ReceivePacket(UDP, buffer);
+        unsigned long bytesReceived = Network->ReceivePacket(UDP, buffer);
 
-        PacketType packetType = Network->GetPacketType(buffer);
+        PacketType packetType = Network->GetPacketType(bytesReceived);
         if (packetType == Type_GamePacket)
         {
             GamePacket packet;
