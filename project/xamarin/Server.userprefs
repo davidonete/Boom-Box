@@ -1,15 +1,12 @@
 ﻿<Properties StartupConfiguration="{5BA63EF5-B1EB-4313-B385-CA139C12F43C}|Default" StartupItem="Server.csproj">
   <MonoDevelop.Ide.Workbench ActiveDocument="../../src/server/Program.cs">
     <Files>
-      <File FileName="../../src/server/Program.cs" Line="355" Column="10" />
+      <File FileName="../../src/server/Program.cs" Line="1007" Column="58" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug|x86" />
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
-    <BreakpointStore>
-      <Breakpoint file="/Users/s6109146/Desktop/Multiplayer-project/src/server/Program.cs" line="715" column="1" />
-      <Breakpoint file="/Users/s6109146/Desktop/Multiplayer-project/src/server/Program.cs" line="669" column="1" />
-    </BreakpointStore>
+    <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>
   <MonoDevelop.Ide.DebuggingService.PinnedWatches />
   <MonoDevelop.Ide.ItemProperties.Server PreferredExecutionTarget="MonoDevelop.Default" />
