@@ -12,6 +12,10 @@
 #include "Scenes/Scene.h"
 #include "System/NetworkManager.h"
 
+#ifdef _WIN32
+typedef unsigned int uint;
+#endif
+
 enum InputData
 {
   InputData_LeftPressed,

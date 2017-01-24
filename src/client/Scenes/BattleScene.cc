@@ -222,7 +222,7 @@ void BattleScene::GetServerTCPPackets()
             if (msg == Server_PlayerDead)
             {
                 mutex.lock();
-                timeLeft = 21.0f;
+                timeLeft = 61.0f;
                 DestroyPlayer(packet.ID);
                 mutex.unlock();
             }

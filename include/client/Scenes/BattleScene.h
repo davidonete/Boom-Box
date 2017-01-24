@@ -43,7 +43,7 @@ private:
   sf::Texture background;
   sf::Sprite sprite;
 
-  float timeLeft = 20.0f;
+  float timeLeft = 60.0f;
   sf::Text timeText;
   sf::Font myfont;
   sf::Clock clock;
