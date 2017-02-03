@@ -1,4 +1,4 @@
-# The Boom box
+# The Boom Box
 
 This is a multiplayer game project made by David Parra Ausina for Teesside University, Multiplayer and Social Games.
 
