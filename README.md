@@ -1,6 +1,6 @@
-# Multiplayer-project
+# The Boom box
 
-This is a multiplayer project made by David Parra Ausina for Teesside University, Multiplayer and Social Games.
+This is a multiplayer game project made by David Parra Ausina for Teesside University, Multiplayer and Social Games.
 
 In order to build the source code you can use the following depending on your OS:
 * Windows (64-bit): On the build folder there is some lua files that will generate a Visual Studio 2015 project file configured and ready to go, just needs you to use the generate_vs2015.bat file and will do the magic.
