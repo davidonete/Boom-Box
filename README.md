@@ -1,6 +1,15 @@
 # The Boom Box
 
-This is a multiplayer game project made by David Parra Ausina for Teesside University, Multiplayer and Social Games.
+Teesside University - Multiplayer and Social Games.
+
+This is a multiplayer game project  and multiplatform (Windows and MacOS compatibility) that uses TCP and UDP connections to work. The game consists on a catch game. One of the players will start with a bomb and will have to catch another player before the time runs out or he will be disqualified, and the last man standing wins the game.
+
+The game is composed by various scenes:
+- Log In: The player has to log in to the server using his own username and password and the ip of the server.
+- Waiting room: The players can see the information of the other players connected and also chat with them.
+- Game scene: Where a maximum of 4 players can join and play the catch game.
+
+The game is using SFML (for the graphics rendering and networking), Box2D (for the collision and physics) and SFGUI (for the basic GUI of the game)
 
 In order to build the source code you can use the following depending on your OS:
 * Windows (64-bit): On the build folder there is some lua files that will generate a Visual Studio 2015 project file configured and ready to go, just needs you to use the generate_vs2015.bat file and will do the magic.
